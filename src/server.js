@@ -13,7 +13,7 @@ async function startServer() {
         await connectDB();
 
         app.listen(APP_PORT, () => {
-            console.log(`🚀 Server running on port ${PORT}`);
+            console.log(`🚀 Server running on port ${APP_PORT}`);
         });
     } catch (error) {
         console.error("❌ Falha crítica: Não foi possível iniciar o servidor devido ao banco de dados.", error);
