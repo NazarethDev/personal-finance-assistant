@@ -25,7 +25,7 @@ const expenseTemplateSchema = new mongoose.Schema({
         enum: Object.values(frequency)
     },
 
-    dateOfOccurance: {
+    dueDate: {
         type: Number,
         required: true
     },

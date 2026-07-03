@@ -24,13 +24,18 @@ const investmentTemplateSchema = new mongoose.Schema({
         required: true,
         enum: Object.values(frequency)
     },
-    
-    dateOfOccurance: {
+
+    dueDate: {
         type: Number,
         required: true
     },
 
     startDate: {
+        type: Date,
+        required: true
+    },
+
+    finishDate: {
         type: Date,
         required: true
     }
