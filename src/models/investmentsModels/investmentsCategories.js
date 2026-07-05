@@ -1,4 +1,4 @@
-export const investmentsCategories = new Object.freeze({
+export const investmentsCategories = Object.freeze({
     ACOES: 'ações',
     TESOURO_DIRETO: 'tesouro direto',
     RENDA_FIXA: 'renda fixa',

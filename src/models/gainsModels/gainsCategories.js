@@ -1,4 +1,4 @@
-export const gainsCategories = new Object.freeze({
+export const gainsCategories = Object.freeze({
     SALARIO: 'salário',
     ALUGUEIS: 'aluguéis',
     HORAS_EXTRAS: 'horas extras',
