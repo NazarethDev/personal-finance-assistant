@@ -1,27 +1,18 @@
 import * as investmentService from "../services/investmentService.js";
 import { HttpStatusCode } from "axios";
+import { createInvestmentDTO } from "../models/investmentsModels/investmentDTO.js";
 
-export async function handleCreateShortInvestment(req, res) {
+export async function handleCreatetInvestment(req, res) {
     try {
-        const newInvestment = await investmentService.createShort(req.body);
+        const investmentData = createInvestmentDTO(req.body);
+
+        const newInvestment = await investmentService.createLong(investmentData);
+
         return res.status(HttpStatusCode.Created).json(newInvestment);
     } catch (error) {
         console.error("Erro ao criar histórico de investimento:", error);
         return res.status(HttpStatusCode.BadRequest).json({
             message: "Erro interno ao salvar o histórico de investimento.",
-            error: error.message
-        });
-    }
-}
-
-export async function handleCreateLongInvestment(req, res) {
-    try {
-        const newLongInvestment = await investmentService.createLong(req.body);
-        return res.status(HttpStatusCode.Created).json(newLongInvestment);
-    } catch (error) {
-        console.error("Erro ao criar investimento longo:", error);
-        return res.status(HttpStatusCode.BadRequest).json({
-            message: "Erro interno ao salvar o investimento.",
             error: error.message
         });
     }

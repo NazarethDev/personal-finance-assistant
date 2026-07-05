@@ -1,23 +1,14 @@
 import * as gainService from "../services/gainService.js";
 import { HttpStatusCode } from "axios";
+import { createGainDTO } from "../models/gainsModels/gainDTO.js";
 
-export async function handleCreateShortGain(req, res) {
+export async function handleCreateGain(req, res) {
     try {
-        const newGain = await gainService.createShort(req.body);
+        const gainData = createGainDTO(req.body);
+
+        const newGain = await gainService.create(gainData)
+
         return res.status(HttpStatusCode.Created).json(newGain);
-    } catch (error) {
-        console.error("Erro ao criar registro de ganho:", error);
-        return res.status(HttpStatusCode.BadRequest).json({
-            message: "Erro interno ao salvar o histórico de ganhos.",
-            error: error.message
-        });
-    }
-}
-
-export async function handleCreateLongGain(req, res) {
-    try {
-        const newLongGain = await gainService.createLong(req.body);
-        return res.status(HttpStatusCode.Created).json(newLongGain);
     } catch (error) {
         console.error("Erro ao criar o novo ganho:", error);
         return res.status(HttpStatusCode.BadRequest).json({

@@ -10,12 +10,14 @@ async function verifyExistence(id) {
     return null;
 }
 
-export async function createShort(data) {
-    return await gainRepo.saveShortGain(data);
-}
+export async function create(data) {
+    
+    if (data.gainFrequency){
+        return await gainRepo.saveLongGain(data);
+    }
 
-export async function createLong(data) {
-    return await gainRepo.saveLongGain(data);
+    return await gainRepo.saveShortGain(data);
+
 }
 
 export async function removeGain(id) {

@@ -10,12 +10,12 @@ async function verifyExistence(id) {
     return null;
 }
 
-export async function createShort(data) {
+export async function create(data) {
+    if (data.expenseFrequency) {
+        return await expenseRepo.saveLongExpense(data);
+    }
+    
     return await expenseRepo.saveShortExpense(data);
-}
-
-export async function createLong(data) {
-    return await expenseRepo.saveLongExpense(data);
 }
 
 export async function removeExpense(id) {

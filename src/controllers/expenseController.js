@@ -1,23 +1,14 @@
 import * as expenseService from "../services/expenseService.js";
 import { HttpStatusCode } from "axios";
+import { createExpenseDTO } from "../models/expensesModels/expenseDTO.js";
 
-export async function handleCreateShortExpense(req, res) {
+export async function handleCreateExpense(req, res) {
     try {
-        const newExpense = await expenseService.createShort(req.body);
+        const expenseData = createExpenseDTO(req.body);
+
+        const newExpense = await expenseService.create(expenseData);
+
         return res.status(HttpStatusCode.Created).json(newExpense);
-    } catch (error) {
-        console.error("Erro ao criar histórico de despesa:", error);
-        return res.status(HttpStatusCode.BadRequest).json({
-            message: "Erro interno ao salvar o histórico de gastos.",
-            error: error.message
-        });
-    }
-}
-
-export async function handleCreateLongExpense(req, res) {
-    try {
-        const newLongExpense = await expenseService.createLong(req.body);
-        return res.status(HttpStatusCode.Created).json(newLongExpense);
     } catch (error) {
         console.error("Erro ao criar despesa longa:", error);
         return res.status(HttpStatusCode.BadRequest).json({

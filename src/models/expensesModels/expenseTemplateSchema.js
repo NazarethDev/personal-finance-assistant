@@ -1,40 +1,51 @@
 import mongoose from "mongoose";
 import { expenseCategory } from "./expensesCategories.js";
-import { frequency } from "../frequencyEnum.js";
+import { frequency, weeklyFrequency, monthlyFrequency } from "../frequencyEnum.js";
 
 const expenseTemplateSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true
-    },
-
-    amount: {
-        type: Number,
-        required: true
-    },
-
+    name: { type: String, required: true },
+    amount: { type: Number, required: true },
     expenseCategory: {
         type: String,
         required: true,
         enum: Object.values(expenseCategory)
     },
-
     expenseFrequency: {
         type: String,
         required: true,
-        enum: Object.values(frequency)
+        enum: [...Object.keys(frequency), ...Object.values(frequency)]
     },
 
     dueDate: {
-        type: Number,
+        type: mongoose.Schema.Types.Mixed,
         required: true
     },
 
-    startDate: {
-        type: Date,
-        required: true
+    startDate: { type: Date, required: true }
+}, {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
+
+expenseTemplateSchema.virtual('dueDateDescription').get(function () {
+    const freq = this.expenseFrequency;
+
+    if (freq === frequency.WEEKLY || freq === 'WEEKLY') {
+        return `Toda(o) ${weeklyFrequency[this.dueDate] || 'dia inválido'}`;
     }
 
+    if (freq === frequency.MONTHLY || freq === 'MONTHLY') {
+        return `Todo dia ${this.dueDate}`;
+    }
+
+    if (freq === frequency.YEARLY || freq === 'YEARLY') {
+        if (this.dueDate && this.dueDate.day && this.dueDate.month) {
+            const nomeMes = monthlyFrequency[this.dueDate.month];
+            return `Todo dia ${this.dueDate.day} de ${nomeMes}`;
+        }
+    }
+
+    return String(this.dueDate);
 });
 
 export const ExpenseTemplate = mongoose.model("ExpenseTemplate", expenseTemplateSchema);

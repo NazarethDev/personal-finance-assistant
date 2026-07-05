@@ -10,12 +10,14 @@ async function verifyExistence(id) {
     return null;
 }
 
-export async function createShort(data) {
-    return await investmentRepo.saveShortInvestment(data);
-}
+export async function create(data) {
 
-export async function createLong(data) {
-    return await investmentRepo.saveLongInvestment(data);
+    if (data.investmentFrequency) {
+        return await investmentRepo.saveLongInvestment(data);
+    }
+
+    return await investmentRepo.saveShortInvestment(data);
+
 }
 
 export async function removeInvestment(id) {
