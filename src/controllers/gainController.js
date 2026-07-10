@@ -1,6 +1,6 @@
 import * as gainService from "../services/gainService.js";
 import { HttpStatusCode } from "axios";
-import { createGainDTO } from "../models/gainsModels/gainDTO.js";
+import { createGainDTO, updateGainDTO } from "../models/gainsModels/gainDTO.js";
 
 export async function handleCreateGain(req, res) {
     try {
@@ -35,13 +35,15 @@ export async function handleDeleteGain(req, res) {
 }
 
 export async function handleUpdateGain(req, res) {
-    const { id } = req.params;
     try {
-        const updated = await gainService.modifyGain(id, req.body);
-        return res.status(HttpStatusCode.Ok).json({
-            message: "Gain successfully updated.",
-            data: updated
-        });
+        const { id } = req.params;
+
+        const cleanUpdateData = updateGainDTO(req.body);
+
+        const updatedGain = await gainService.modifyGain(id, cleanUpdateData);
+
+        return res.status(HttpStatusCode.Ok).json(updatedGain);
+
     } catch (error) {
         if (error.message === "GAIN_NOT_FOUND") {
             return res.status(HttpStatusCode.NotFound).json({ message: 'Gain not found' });

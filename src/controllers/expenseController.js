@@ -1,6 +1,6 @@
 import * as expenseService from "../services/expenseService.js";
 import { HttpStatusCode } from "axios";
-import { createExpenseDTO } from "../models/expensesModels/expenseDTO.js";
+import { createExpenseDTO, updateExpenseDTO } from "../models/expensesModels/expenseDTO.js";
 
 export async function handleCreateExpense(req, res) {
     try {
@@ -20,9 +20,16 @@ export async function handleCreateExpense(req, res) {
 
 export async function handleDeleteExpense(req, res) {
     const { id } = req.params;
+    const deleteAll = req.query.deleteAll === "true";
+
     try {
-        await expenseService.removeExpense(id);
-        return res.status(HttpStatusCode.Ok).json({ message: 'Despesa deletada com sucesso.' });
+        await expenseService.removeExpense(id, deleteAll);
+
+        return res.status(HttpStatusCode.Ok).json({
+            message: deleteAll
+                ? 'Regra recorrente e históricos associados removidos.'
+                : 'Registro deletado com sucesso.'
+        });
     } catch (error) {
         if (error.message === "EXPENSE_NOT_FOUND") {
             return res.status(HttpStatusCode.NotFound).json({ message: 'Expense not found' });
@@ -35,13 +42,13 @@ export async function handleDeleteExpense(req, res) {
 }
 
 export async function handleUpdateExpense(req, res) {
-    const { id } = req.params;
     try {
-        const updated = await expenseService.modifyExpense(id, req.body);
-        return res.status(HttpStatusCode.Ok).json({
-            message: "Expense successfully updated.",
-            data: updated
-        });
+        const { id } = req.params;
+        const cleanUpdateData = updateExpenseDTO(req.body);
+        const updatedExpense = await expenseService.modifyExpense(id, cleanUpdateData);
+
+        return res.status(HttpStatusCode.Ok).json(updatedExpense)
+
     } catch (error) {
         if (error.message === "EXPENSE_NOT_FOUND") {
             return res.status(HttpStatusCode.NotFound).json({ message: 'Expense not found' });

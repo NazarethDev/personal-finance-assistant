@@ -1,6 +1,6 @@
 import * as investmentService from "../services/investmentService.js";
 import { HttpStatusCode } from "axios";
-import { createInvestmentDTO } from "../models/investmentsModels/investmentDTO.js";
+import { createInvestmentDTO, updateInvestmentDTO } from "../models/investmentsModels/investmentDTO.js";
 
 export async function handleCreatetInvestment(req, res) {
     try {
@@ -35,13 +35,12 @@ export async function handleDeleteInvestment(req, res) {
 }
 
 export async function handleUpdateInvestment(req, res) {
-    const { id } = req.params;
     try {
-        const updated = await investmentService.modifyInvestment(id, req.body);
-        return res.status(HttpStatusCode.Ok).json({
-            message: "Investment successfully updated.",
-            data: updated
-        });
+        const { id } = req.params;
+        const cleanUpdateData = updateInvestmentDTO(req.body);
+        const updatedInvestment = await investmentService.modifyInvestment(id, cleanUpdateData);
+
+        return res.status(HttpStatusCode.Ok).json(updatedInvestment);
     } catch (error) {
         if (error.message === "INVESTMENT_NOT_FOUND") {
             return res.status(HttpStatusCode.NotFound).json({ message: 'Investment not found' });
