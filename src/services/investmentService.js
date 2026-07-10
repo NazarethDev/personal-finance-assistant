@@ -1,4 +1,6 @@
 import * as investmentRepo from "../repositories/investmentRepository.js";
+import { normalizeDate } from "../utils/normalizeDate.js";
+import { isDueDateToday } from "../utils/isDueDateToday.js";
 
 async function verifyExistence(id) {
     const existsInHistory = await investmentRepo.checkHistoryExists(id);
@@ -13,7 +15,17 @@ async function verifyExistence(id) {
 export async function create(data) {
 
     if (data.investmentFrequency) {
-        return await investmentRepo.saveLongInvestment(data);
+        const newTemplate = await investmentRepo.saveLongInvestment(data);
+        if (isDueDateToday(data.dueDate, data.investmentFrequency)) {
+            await investmentRepo.saveShortInvestment({
+                name: data.name,
+                amount: data.amount,
+                investmentCategory: data.investmentCategory,
+                dueDate: normalizeDate(new Date()),
+                templateId: newTemplate._id
+            })
+        }
+        return newTemplate;
     }
 
     return await investmentRepo.saveShortInvestment(data);

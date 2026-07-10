@@ -21,7 +21,8 @@ const expenseTemplateSchema = new mongoose.Schema({
         required: true
     },
 
-    startDate: { type: Date, required: true }
+    startDate: { type: Date, required: true },
+    finishDate: { type: Date }
 }, {
     toJSON: { virtuals: true },
     toObject: { virtuals: true }
@@ -46,6 +47,15 @@ expenseTemplateSchema.virtual('dueDateDescription').get(function () {
     }
 
     return String(this.dueDate);
+});
+
+expenseTemplateSchema.virtual('startDateFormatted').get(function () {
+    return isoDateToBrazilianDate(this.startDate);
+});
+
+expenseTemplateSchema.virtual('finishDateFormatted').get(function () {
+    if (!this.finishDate) return null;
+    return isoDateToBrazilianDate(this.finishDate);
 });
 
 export const ExpenseTemplate = mongoose.model("ExpenseTemplate", expenseTemplateSchema);

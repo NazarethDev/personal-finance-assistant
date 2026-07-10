@@ -1,4 +1,5 @@
 import { frequency, weeklyFrequency, monthlyFrequency } from "../frequencyEnum.js";
+import { normalizeDate } from "../../utils/normalizeDate.js";
 
 export function createInvestmentDTO({
     name,
@@ -7,6 +8,7 @@ export function createInvestmentDTO({
     investmentFrequency,
     dueDate,
     startDate,
+    finishDate,
     templateId
 }) {
 
@@ -14,8 +16,12 @@ export function createInvestmentDTO({
 
     let processedDueDate;
 
+    const normalizedStartDate = normalizeDate(startDate);
+
+    const normalizedFinishtDate = normalizeDate(finishDate);
+
     if (isShortInvestment) {
-        processedDueDate = new Date(dueDate);
+        processedDueDate = normalizeDate(dueDate);
     } else if (investmentFrequency === frequency.WEEKLY || investmentFrequency === "WEEKLY") {
         processedDueDate = Number(dueDate);
     } else if (investmentFrequency === frequency.MONTHLY || investmentFrequency === "MONTHLY") {
@@ -34,7 +40,8 @@ export function createInvestmentDTO({
         investmentCategory,
         investmentFrequency: isShortInvestment ? null : (frequency[investmentFrequency] || investmentFrequency),
         dueDate: processedDueDate,
-        startDate: startDate ? new Date(startDate) : null,
+        startDate: normalizedStartDate,
+        finishDate: normalizedFinishtDate,
         templateId: templateId || null
     });
 }

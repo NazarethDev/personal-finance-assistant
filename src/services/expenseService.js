@@ -1,5 +1,8 @@
 import * as expenseRepo from "../repositories/expenseRepository.js";
 
+import { normalizeDate } from "../utils/normalizeDate.js";
+import { isDueDateToday } from "../utils/isDueDateToday.js";
+
 async function verifyExistence(id) {
     const existsInHistory = await expenseRepo.checkHistoryExists(id);
     if (existsInHistory) return 'existsInHistory';
@@ -12,9 +15,21 @@ async function verifyExistence(id) {
 
 export async function create(data) {
     if (data.expenseFrequency) {
-        return await expenseRepo.saveLongExpense(data);
-    }
-    
+        const newTemplate = await expenseRepo.saveLongExpense(data);
+        if (isDueDateToday(data.dueDate, data.expenseFrequency)) {
+            await expenseRepo.saveShortExpense({
+                name: data.name,
+                amount: data.amount,
+                expenseCategory: data.expenseCategory,
+                dueDate: normalizeDate(new Date()),
+                templateId: newTemplate._id
+            });
+
+        }
+        return newTemplate;
+
+    };
+
     return await expenseRepo.saveShortExpense(data);
 }
 

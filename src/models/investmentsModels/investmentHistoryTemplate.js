@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { investmentsCategories } from "./investmentsCategories.js";
+import { isoDateToBrazilianDate } from "../../utils/normalizeDate.js";
 
 const investmentHistoryTemplate = new mongoose.Schema({
 
@@ -30,6 +31,15 @@ const investmentHistoryTemplate = new mongoose.Schema({
         default: null
     }
 
+}, {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 });
+
+investmentHistoryTemplate.virtual('dueDateFormatted').get(function () {
+    if (!this.dueDate) return null;
+
+    return isoDateToBrazilianDate(this.dueDate);
+})
 
 export const InvestmentHistory = mongoose.model("InvestmentHistory", investmentHistoryTemplate);

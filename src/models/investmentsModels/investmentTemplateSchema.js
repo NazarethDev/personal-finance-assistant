@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { investmentsCategories } from "./investmentsCategories.js";
 import { frequency, weeklyFrequency, monthlyFrequency } from "../frequencyEnum.js";
 
+import { isoDateToBrazilianDate } from "../../utils/normalizeDate.js";
 
 const investmentTemplateSchema = new mongoose.Schema({
     name: {
@@ -38,7 +39,6 @@ const investmentTemplateSchema = new mongoose.Schema({
 
     finishDate: {
         type: Date,
-        required: true
     }
 }, {
     toJSON: { virtuals: true },
@@ -46,7 +46,7 @@ const investmentTemplateSchema = new mongoose.Schema({
 });
 
 investmentTemplateSchema.virtual('dueDateDescription').get(function () {
-    const freq = this.expenseFrequency;
+    const freq = this.investmentFrequency;
 
     if (freq === frequency.WEEKLY || freq === 'WEEKLY') {
         return `Toda(o) ${weeklyFrequency[this.dueDate] || 'dia inválido'}`;
@@ -63,8 +63,16 @@ investmentTemplateSchema.virtual('dueDateDescription').get(function () {
         }
     }
 
-    return String(this.dueDate);
+    return isoDateToBrazilianDate(this.dueDate);
 });
 
+investmentTemplateSchema.virtual('startDateFormatted').get(function () {
+    return isoDateToBrazilianDate(this.startDate);
+});
+
+investmentTemplateSchema.virtual('finishDateFormatted').get(function () {
+    if (!this.finishDate) return null;
+    return isoDateToBrazilianDate(this.finishDate);
+});
 
 export const InvestmentTemplate = mongoose.model("InvestmentTemplate", investmentTemplateSchema);

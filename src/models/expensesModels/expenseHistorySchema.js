@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import { expenseCategory } from "./expensesCategories.js";
 
+import { isoDateToBrazilianDate } from "../../utils/normalizeDate.js";
+
 const expenseHistorySchema = new mongoose.Schema({
     name: {
         type: String,
@@ -28,7 +30,16 @@ const expenseHistorySchema = new mongoose.Schema({
         ref: 'ExpenseTemplate',
         default: null
     }
+},
+    {
+        toJSON: { virtuals: true },
+        toObject: { virtuals: true }
+    });
 
-});
+expenseHistorySchema.virtual('dueDateFormatted').get(function () {
+    if (!this.dueDate) return null;
+
+    return isoDateToBrazilianDate(this.dueDate);
+})
 
 export const ExpenseHistory = mongoose.model("ExpenseHistory", expenseHistorySchema);

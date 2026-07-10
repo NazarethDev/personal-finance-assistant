@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import { gainsCategories } from "./gainsCategories.js";
 
+import { isoDateToBrazilianDate } from "../../utils/normalizeDate.js";
+
 const gainHistorySchema = new mongoose.Schema({
     name: {
         type: String,
@@ -28,6 +30,15 @@ const gainHistorySchema = new mongoose.Schema({
         ref: 'GainTemplate',
         default: null
     }
+}, {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 });
+
+gainHistorySchema.virtual('dueDateFormatted').get(function () {
+    if (!this.dueDate) return null;
+
+    return isoDateToBrazilianDate(this.dueDate);
+})
 
 export const GainHistory = mongoose.model("GainHistory", gainHistorySchema)

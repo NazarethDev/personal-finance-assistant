@@ -1,4 +1,6 @@
 import * as gainRepo from "../repositories/gainRepository.js";
+import { normalizeDate } from "../utils/normalizeDate.js";
+import { isDueDateToday } from "../utils/isDueDateToday.js";
 
 async function verifyExistence(id) {
     const existsInHistory = await gainRepo.checkHistoryExists(id);
@@ -11,13 +13,23 @@ async function verifyExistence(id) {
 }
 
 export async function create(data) {
-    
-    if (data.gainFrequency){
-        return await gainRepo.saveLongGain(data);
+
+    if (data.gainFrequency) {
+        const newTemplate = await gainRepo.saveLongGain(data);
+        if (isDueDateToday(data.dueDate, data.gainFrequency)) {
+            await gainRepo.saveShortGain({
+                name: data.name,
+                amount: data.amount,
+                gainCategory: data.gainCategory,
+                dueDate: normalizeDate(new Date()),
+                templateId: newTemplate._id
+            });
+
+        }
+        return newTemplate;
     }
 
     return await gainRepo.saveShortGain(data);
-
 }
 
 export async function removeGain(id) {

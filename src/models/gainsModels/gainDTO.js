@@ -1,4 +1,5 @@
 import { frequency } from "../frequencyEnum.js";
+import { normalizeDate } from "../../utils/normalizeDate.js"
 
 export function createGainDTO({
     name,
@@ -7,6 +8,7 @@ export function createGainDTO({
     gainFrequency,
     dueDate,
     startDate,
+    finishDate,
     templateId
 }) {
 
@@ -14,8 +16,12 @@ export function createGainDTO({
 
     let processedDueDate;
 
+    const normalizedStartDate = normalizeDate(startDate);
+
+    const normalizedFinishtDate = normalizeDate(finishDate);
+
     if (isShortGain) {
-        processedDueDate = new Date(dueDate);
+        processedDueDate = normalizeDate(dueDate);
     } else if (gainFrequency === frequency.WEEKLY || gainFrequency === "WEEKLY") {
         processedDueDate = Number(dueDate);
     } else if (gainFrequency === frequency.MONTHLY || gainFrequency === "MONTHLY") {
@@ -32,9 +38,10 @@ export function createGainDTO({
         name: String(name),
         amount: Number(amount),
         gainCategory,
-        gainFrequency: isShortGain ? null : (frequency[gainFrequency] || gainFrequency), 
+        gainFrequency: isShortGain ? null : (frequency[gainFrequency] || gainFrequency),
         dueDate: processedDueDate,
-        startDate: startDate ? new Date(startDate) : null,
+        startDate: normalizedStartDate,
+        finishDate: normalizedFinishtDate,
         templateId: templateId || null
     });
 }

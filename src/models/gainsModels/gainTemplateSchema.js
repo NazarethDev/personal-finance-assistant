@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { frequency, weeklyFrequency, monthlyFrequency } from "../frequencyEnum.js";
 import { gainsCategories } from "./gainsCategories.js";
+import { isoDateToBrazilianDate } from "../../utils/normalizeDate.js";
 
 const gainTemplateSchema = new mongoose.Schema({
     name: { type: String, required: true },
@@ -19,7 +20,8 @@ const gainTemplateSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.Mixed,
         required: true
     },
-    startDate: { type: Date, required: true }
+    startDate: { type: Date, required: true },
+    finishDate: { type: Date }
 }, {
     toJSON: { virtuals: true },
     toObject: { virtuals: true }
@@ -44,6 +46,15 @@ gainTemplateSchema.virtual('dueDateDescription').get(function () {
     }
 
     return String(this.dueDate);
+});
+
+gainTemplateSchema.virtual('startDateFormatted').get(function () {
+    return isoDateToBrazilianDate(this.startDate);
+});
+
+gainTemplateSchema.virtual('finishDateFormatted').get(function () {
+    if (!this.finishDate) return null;
+    return isoDateToBrazilianDate(this.finishDate);
 });
 
 export const GainTemplate = mongoose.model("GainTemplate", gainTemplateSchema);
