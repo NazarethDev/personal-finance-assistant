@@ -17,10 +17,6 @@ export async function saveLongGain(data) {
     return await LongGain.create(data);
 }
 
-export async function deleteShortGain(id) {
-    return await GainHistory.findByIdAndDelete(id);
-}
-
 export async function updateLongGain(id, data) {
     return await LongGain.findByIdAndUpdate(
         id,
