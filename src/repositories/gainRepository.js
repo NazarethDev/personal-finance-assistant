@@ -21,22 +21,43 @@ export async function deleteShortGain(id) {
     return await GainHistory.findByIdAndDelete(id);
 }
 
-export async function deleteLongGain(id) {
-    return await LongGain.findByIdAndDelete(id);
-}
-
-export async function updateShortGain(id, data) {
-    return await GainHistory.findByIdAndUpdate(
-        id,
-        { $set: data },
-        { new: true, runValidators: true }
-    );
-}
-
 export async function updateLongGain(id, data) {
     return await LongGain.findByIdAndUpdate(
         id,
         { $set: data },
         { new: true, runValidators: true }
     );
+}
+
+export async function findHistoryById(id) {
+    return await GainHistory.findById(id);
+}
+
+export async function findLongGainById(id) {
+    return await LongGain.findById(id);
+}
+
+export async function deleteShortGain(id) {
+    return await GainHistory.findByIdAndDelete(id);
+}
+
+export async function deleteLongGain(id) {
+    return await LongGain.findByIdAndDelete(id);
+}
+export async function deleteHistoryByTemplateId(templateId) {
+    return await GainHistory.deleteMany({ templateId: templateId })
+}
+
+export async function deleteHistoryFuture(templateId, dateReference) {
+    return await GainHistory.deleteMany({
+        templateId,
+        dueDate: { $gte: dateReference }
+    });
+}
+
+export async function deleteHistoryPast(templateId, dateReference) {
+    return await GainHistory.deleteMany({
+        templateId,
+        dueDate: { $lt: dateReference }
+    });
 }

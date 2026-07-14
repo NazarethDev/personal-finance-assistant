@@ -20,9 +20,21 @@ export async function handleCreateGain(req, res) {
 
 export async function handleDeleteGain(req, res) {
     const { id } = req.params;
+    const deleteMode = req.query.deleteMode || "single";
+
     try {
-        await gainService.removeGain(id);
-        return res.status(HttpStatusCode.Ok).json({ message: 'Ganho deletado com sucesso.' });
+        await gainService.removeGain(id, deleteMode);
+
+        const feedbackMessages = {
+            all: 'A regra recorrente e todos os registros (passados e futuros) foram removidos.',
+            future: 'A regra recorrente foi encerrada e os lançamentos futuros foram removidos.',
+            past: 'Históricos passados vinculados à recorrência foram removidos.',
+            single: 'Registro deletado com sucesso.'
+        };
+
+        return res.status(HttpStatusCode.Ok).json({
+            message: feedbackMessages[deleteMode] || feedbackMessages.single
+        });
     } catch (error) {
         if (error.message === "GAIN_NOT_FOUND") {
             return res.status(HttpStatusCode.NotFound).json({ message: 'Gain not found' });

@@ -17,14 +17,6 @@ export async function saveLongInvestment(data) {
     return await LongInvestment.create(data);
 }
 
-export async function deleteShortInvestment(id) {
-    return await InvestmentHistory.findByIdAndDelete(id);
-}
-
-export async function deleteLongInvestment(id) {
-    return await LongInvestment.findByIdAndDelete(id);
-}
-
 export async function updateShortInvestment(id, data) {
     return await InvestmentHistory.findByIdAndUpdate(
         id,
@@ -39,4 +31,37 @@ export async function updateLongInvestment(id, data) {
         { $set: data },
         { new: true, runValidators: true }
     );
+}
+
+export async function findHistoryById(id) {
+    return await InvestmentHistory.findById(id);
+}
+
+export async function findLongInvestmentById(id) {
+    return await LongInvestment.findById(id);
+}
+
+export async function deleteShortInvestment(id) {
+    return await InvestmentHistory.findByIdAndDelete(id);
+}
+
+export async function deleteLongInvestment(id) {
+    return await LongInvestment.findByIdAndDelete(id);
+}
+export async function deleteHistoryByTemplateId(templateId) {
+    return await InvestmentHistory.deleteMany({ templateId: templateId })
+}
+
+export async function deleteHistoryFuture(templateId, dateReference) {
+    return await InvestmentHistory.deleteMany({
+        templateId,
+        dueDate: { $gte: dateReference }
+    });
+}
+
+export async function deleteHistoryPast(templateId, dateReference) {
+    return await InvestmentHistory.deleteMany({
+        templateId,
+        dueDate: { $lt: dateReference }
+    });
 }

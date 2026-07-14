@@ -1,5 +1,5 @@
 import * as expenseService from "../services/expenseService.js";
-import { HttpStatusCode } from "axios";
+import { HttpStatusCode } from "axios"; 
 import { createExpenseDTO, updateExpenseDTO } from "../models/expensesModels/expenseDTO.js";
 
 export async function handleCreateExpense(req, res) {
@@ -20,15 +20,20 @@ export async function handleCreateExpense(req, res) {
 
 export async function handleDeleteExpense(req, res) {
     const { id } = req.params;
-    const deleteAll = req.query.deleteAll === "true";
+    const deleteMode = req.query.deleteMode || "single";
 
     try {
-        await expenseService.removeExpense(id, deleteAll);
+        await expenseService.removeExpense(id, deleteMode);
+
+        const feedbackMessages = {
+            all: 'A regra recorrente e todos os registros (passados e futuros) foram removidos.',
+            future: 'A regra recorrente foi encerrada e os lançamentos futuros foram removidos.',
+            past: 'Históricos passados vinculados à recorrência foram removidos.',
+            single: 'Registro deletado com sucesso.'
+        };
 
         return res.status(HttpStatusCode.Ok).json({
-            message: deleteAll
-                ? 'Regra recorrente e históricos associados removidos.'
-                : 'Registro deletado com sucesso.'
+            message: feedbackMessages[deleteMode] || feedbackMessages.single
         });
     } catch (error) {
         if (error.message === "EXPENSE_NOT_FOUND") {

@@ -16,15 +16,6 @@ export async function saveShortExpense(data) {
 export async function saveLongExpense(data) {
     return await LongExpense.create(data);
 }
-
-export async function deleteShortExpense(id) {
-    return await ExpenseHistory.findByIdAndDelete(id);
-}
-
-export async function deleteLongExpense(id) {
-    return await LongExpense.findByIdAndDelete(id);
-}
-
 export async function updateShortExpense(id, data) {
     return await ExpenseHistory.findByIdAndUpdate(
         id,
@@ -39,4 +30,37 @@ export async function updateLongExpense(id, data) {
         { $set: data },
         { new: true, runValidators: true }
     );
+}
+
+export async function findHistoryById(id) {
+    return await ExpenseHistory.findById(id);
+}
+
+export async function findLongExpenseById(id) {
+    return await LongExpense.findById(id);
+}
+
+export async function deleteShortExpense(id) {
+    return await ExpenseHistory.findByIdAndDelete(id);
+}
+
+export async function deleteLongExpense(id) {
+    return await LongExpense.findByIdAndDelete(id);
+}
+export async function deleteHistoryByTemplateId(templateId) {
+    return await ExpenseHistory.deleteMany({ templateId: templateId })
+}
+
+export async function deleteHistoryFuture(templateId, dateReference) {
+    return await ExpenseHistory.deleteMany({
+        templateId,
+        dueDate: { $gte: dateReference }
+    });
+}
+
+export async function deleteHistoryPast(templateId, dateReference) {
+    return await ExpenseHistory.deleteMany({
+        templateId,
+        dueDate: { $lt: dateReference }
+    });
 }

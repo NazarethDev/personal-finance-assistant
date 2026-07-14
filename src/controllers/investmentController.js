@@ -20,9 +20,22 @@ export async function handleCreatetInvestment(req, res) {
 
 export async function handleDeleteInvestment(req, res) {
     const { id } = req.params;
+    const deleteMode = req.query.deleteMode || "single";
+
     try {
-        await investmentService.removeInvestment(id);
-        return res.status(HttpStatusCode.Ok).json({ message: 'Investimento deletado com sucesso.' });
+        await investmentService.removeInvestment(id, deleteMode);
+
+        const feedbackMessages = {
+            all: 'A regra recorrente e todos os registros (passados e futuros) foram removidos.',
+            future: 'A regra recorrente foi encerrada e os lançamentos futuros foram removidos.',
+            past: 'Históricos passados vinculados à recorrência foram removidos.',
+            single: 'Registro deletado com sucesso.'
+        };
+
+        return res.status(HttpStatusCode.Ok).json({
+            message: feedbackMessages[deleteMode] || feedbackMessages.single
+        });
+
     } catch (error) {
         if (error.message === "INVESTMENT_NOT_FOUND") {
             return res.status(HttpStatusCode.NotFound).json({ message: 'Investment not found' });
