@@ -2,6 +2,7 @@ export const investmentsCategories = Object.freeze({
     ACOES: 'ações',
     TESOURO_DIRETO: 'tesouro direto',
     RENDA_FIXA: 'renda fixa',
+    RENDA_VARIAVEL: 'renda variável',
     PREVIDENCIA_PRIVADA: 'previdência privada',
     CONSORCIO: 'consórcio',
     FIIS: 'FIIs',

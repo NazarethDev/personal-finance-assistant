@@ -6,7 +6,7 @@ export async function handleCreatetInvestment(req, res) {
     try {
         const investmentData = createInvestmentDTO(req.body);
 
-        const newInvestment = await investmentService.createLong(investmentData);
+        const newInvestment = await investmentService.create(investmentData);
 
         return res.status(HttpStatusCode.Created).json(newInvestment);
     } catch (error) {

@@ -28,7 +28,7 @@ const investmentTemplateSchema = new mongoose.Schema({
     },
 
     dueDate: {
-        type: Number,
+        type: mongoose.Schema.Types.Mixed,
         required: true
     },
 

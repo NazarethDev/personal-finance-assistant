@@ -13,6 +13,10 @@ const app = express();
 app.use(cors(corsOptions));
 app.use(express.json());
 
+app.use("/gains", gainsRouter);
+app.use("/expenses", expensesRouter);
+app.use("/investments", investmentsRouter);
+
 app.use((req, res, next) => {
     console.log(`[DEBUG] Method: ${req.method} | URL: ${req.url} | Path: ${req.path}`);
     next();

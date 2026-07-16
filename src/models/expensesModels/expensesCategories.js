@@ -1,7 +1,7 @@
 export const expenseCategory = Object.freeze({
     HABITCAO: 'habitação',
     TRANSPORTE: 'transporte',
-    SAUDE: 'saude',
+    SAUDE: 'saúde',
     EDUCACAO: 'educação',
     IMPOSTOS: 'impostos',
     CUIDADOS_PESSOAIS: 'cuidados pessoais',
@@ -9,6 +9,7 @@ export const expenseCategory = Object.freeze({
     LAZER: 'lazer',
     PRESENTES: 'presentes',
     FATURAS: 'faturas',
+    SEGUROS: 'seguros',
     EMPRESTIMOS: 'emprestimos',
     CARTOES: 'cartões de crédito',
     OUTROS: 'outros',

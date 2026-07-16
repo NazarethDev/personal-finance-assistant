@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import { expenseCategory } from "./expensesCategories.js";
 import { frequency, weeklyFrequency, monthlyFrequency } from "../frequencyEnum.js";
+import { isoDateToBrazilianDate } from "../../utils/normalizeDate.js";
+
 
 const expenseTemplateSchema = new mongoose.Schema({
     name: { type: String, required: true },

@@ -8,7 +8,7 @@ export const gainsCategories = Object.freeze({
     BOIFICACAO: 'bonificação',
     PRO_LABORE: 'pró-labore',
     DIVIDENDOS: 'dividendos',
-    FREE_LANCE: 'free-lance',
+    FREE_LANCE: 'freelance',
     EMPRESTIMO: 'emprestimo',
     OUTROS: 'outros'
 
