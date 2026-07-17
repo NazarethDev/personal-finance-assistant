@@ -87,5 +87,5 @@ export function updateExpenseDTO(body) {
         }
     }
 
-    return Object.freeze(updateData);
+    return updateData;
 }

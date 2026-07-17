@@ -88,5 +88,5 @@ export function updateInvestmentDTO(body) {
         }
     }
 
-    return Object.freeze(updateData);
+    return updateData;
 }

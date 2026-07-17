@@ -20,7 +20,7 @@ export async function updateShortExpense(id, data) {
     return await ExpenseHistory.findByIdAndUpdate(
         id,
         { $set: data },
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     );
 }
 
@@ -28,7 +28,7 @@ export async function updateLongExpense(id, data) {
     return await LongExpense.findByIdAndUpdate(
         id,
         { $set: data },
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     );
 }
 

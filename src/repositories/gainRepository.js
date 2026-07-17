@@ -21,8 +21,16 @@ export async function updateLongGain(id, data) {
     return await LongGain.findByIdAndUpdate(
         id,
         { $set: data },
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     );
+}
+
+export async function updateShortGain(id, data) {
+    return await GainHistory.findByIdAndUpdate(
+        id,
+        { $set: data },
+        { returnDocument: 'after', runValidators: true }
+    )
 }
 
 export async function findHistoryById(id) {

@@ -21,7 +21,7 @@ export async function updateShortInvestment(id, data) {
     return await InvestmentHistory.findByIdAndUpdate(
         id,
         { $set: data },
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     );
 }
 
@@ -29,7 +29,7 @@ export async function updateLongInvestment(id, data) {
     return await LongInvestment.findByIdAndUpdate(
         id,
         { $set: data },
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     );
 }
 

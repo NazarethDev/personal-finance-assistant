@@ -87,5 +87,5 @@ export function updateGainDTO(body) {
         }
     }
 
-    return Object.freeze(updateData);
+    return updateData;
 }
