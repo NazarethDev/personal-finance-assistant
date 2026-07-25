@@ -13,5 +13,6 @@ export const expenseCategory = Object.freeze({
     EMPRESTIMOS: 'emprestimos',
     CARTOES: 'cartões de crédito',
     OUTROS: 'outros',
-    EMPRESTIMOS: 'emprestimos'
+    EMPRESTIMOS: 'emprestimos',
+    ENTRETENIMENTO: 'entretenimento'
 });

@@ -3,10 +3,10 @@ import { frequency, weeklyFrequency, monthlyFrequency } from "../frequencyEnum.j
 import { gainsCategories } from "./gainsCategories.js";
 import { isoDateToBrazilianDate } from "../../utils/normalizeDate.js";
 
-const gainTemplateSchema = new mongoose.Schema({
+const gainSchema = new mongoose.Schema({
     name: { type: String, required: true },
     amount: { type: Number, required: true },
-    gainCategory: {
+    category: {
         type: String,
         required: true,
         enum: Object.values(gainsCategories)
@@ -16,45 +16,58 @@ const gainTemplateSchema = new mongoose.Schema({
         required: true,
         enum: [...Object.keys(frequency), ...Object.values(frequency)]
     },
+    seriesId: {
+        type: mongoose.Schema.Types.ObjectId,
+        default: null
+    },
     dueDate: {
-        type: mongoose.Schema.Types.Mixed,
+        type: Date,
         required: true
     },
-    startDate: { type: Date, required: true },
-    finishDate: { type: Date }
+    startDate: {
+        type: Date,
+        required: true
+    },
+    finishDate: {
+        type: Date,
+        default: null
+    }
 }, {
+    timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true }
 });
 
-gainTemplateSchema.virtual('dueDateDescription').get(function () {
+gainSchema.virtual('dueDateDescription').get(function () {
     const freq = this.gainFrequency;
 
     if (freq === frequency.WEEKLY || freq === 'WEEKLY') {
-        return `Toda(o) ${weeklyFrequency[this.dueDate] || 'dia inválido'}`;
+        const dayOfWeek = this.dueDate.getUTCDay();
+        return `Toda(o) ${weeklyFrequency[dayOfWeek] || 'dia inválido'}`;
     }
 
     if (freq === frequency.MONTHLY || freq === 'MONTHLY') {
-        return `Todo dia ${this.dueDate}`;
+        const day = this.dueDate.getUTCDate();
+        return `Todo dia ${day}`;
     }
 
     if (freq === frequency.YEARLY || freq === 'YEARLY') {
-        if (this.dueDate && this.dueDate.day && this.dueDate.month) {
-            const nomeMes = monthlyFrequency[this.dueDate.month];
-            return `Todo dia ${this.dueDate.day} de ${nomeMes}`;
-        }
+        const day = this.dueDate.getUTCDate();
+        const month = this.dueDate.getUTCMonth() + 1;
+        const nomeMes = monthlyFrequency[month];
+        return `Todo dia ${day} de ${nomeMes}`;
     }
 
-    return String(this.dueDate);
+    return isoDateToBrazilianDate(this.dueDate);
 });
 
-gainTemplateSchema.virtual('startDateFormatted').get(function () {
+gainSchema.virtual('startDateFormatted').get(function () {
     return isoDateToBrazilianDate(this.startDate);
 });
 
-gainTemplateSchema.virtual('finishDateFormatted').get(function () {
+gainSchema.virtual('finishDateFormatted').get(function () {
     if (!this.finishDate) return null;
     return isoDateToBrazilianDate(this.finishDate);
 });
 
-export const GainTemplate = mongoose.model("GainTemplate", gainTemplateSchema);
+export const Gain = mongoose.model("Gain", gainSchema);

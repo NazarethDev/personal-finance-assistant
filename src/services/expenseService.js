@@ -1,92 +1,112 @@
+import mongoose from "mongoose";
 import * as expenseRepo from "../repositories/expenseRepository.js";
 
 import { normalizeDate } from "../utils/normalizeDate.js";
-import { isDueDateToday } from "../utils/isDueDateToday.js";
-
-async function verifyExistence(id) {
-    const existsInHistory = await expenseRepo.checkHistoryExists(id);
-    if (existsInHistory) return 'existsInHistory';
-
-    const existsInLongExpense = await expenseRepo.checkTemplateExists(id);
-    if (existsInLongExpense) return 'existsInLongExpense';
-
-    return null;
-}
+import { calculateNextDate } from "../utils/calculateNextDate.js";
+import { frequency } from "../models/frequencyEnum.js";
 
 export async function create(data) {
-    if (data.expenseFrequency) {
-        const newTemplate = await expenseRepo.saveLongExpense(data);
-        if (isDueDateToday(data.dueDate, data.expenseFrequency)) {
-            await expenseRepo.saveShortExpense({
-                name: data.name,
-                amount: data.amount,
-                expenseCategory: data.expenseCategory,
-                dueDate: normalizeDate(new Date()),
-                templateId: newTemplate._id
-            });
+    const isRecurrent = data.expenseFrequency &&
+        data.expenseFrequency !== frequency.ONCE &&
+        data.expenseFrequency !== 'ONCE';
 
-        }
-        return newTemplate;
+    if (!isRecurrent) {
+        return await expenseRepo.createSingle({
+            ...data,
+            seriesId: null
+        });
+    }
 
-    };
+    const seriesId = new mongoose.Types.ObjectId();
+    const expensesToCreate = [];
 
-    return await expenseRepo.saveShortExpense(data);
+    let currentDueDate = new Date(data.dueDate);
+    const startDate = new Date(data.startDate);
+
+    let limitDate = data.finishDate ? new Date(data.finishDate) : new Date(startDate);
+    if (!data.finishDate) {
+        limitDate.setUTCFullYear(limitDate.getUTCFullYear() + 1);
+    }
+
+    while (currentDueDate <= limitDate) {
+        expensesToCreate.push({
+            name: data.name,
+            amount: data.amount,
+            category: data.category,
+            expenseFrequency: data.expenseFrequency,
+            seriesId: seriesId,
+            dueDate: new Date(currentDueDate),
+            startDate: startDate,
+            finishDate: data.finishDate ? new Date(data.finishDate) : null
+        });
+
+        currentDueDate = calculateNextDate(currentDueDate, data.expenseFrequency);
+    }
+
+    const createdExpenses = await expenseRepo.createMany(expensesToCreate);
+
+    return createdExpenses;
 }
 
-export async function modifyExpense(id, data) {
-    const target = await verifyExistence(id);
+export async function modifyExpense(id, { updateData, mode }) {
+    const target = await expenseRepo.findById(id);
 
     if (!target) {
         throw new Error("EXPENSE_NOT_FOUND");
     }
 
-    if (target === 'existsInHistory') {
-        return await expenseRepo.updateShortExpense(id, data);
-    } else {
-        return await expenseRepo.updateLongExpense(id, data);
+    if (!target.seriesId || mode === 'SINGLE') {
+        return await expenseRepo.update(id, updateData);
     }
+
+    switch (mode) {
+        case 'ALL':
+            const dataToUpdateAll = { ...updateData };
+            delete dataToUpdateAll.dueDate;
+
+            await expenseRepo.updateAllInSeries(target.seriesId, dataToUpdateAll);
+            break;
+
+        case 'FUTURE':
+            const dataToUpdateFuture = { ...updateData };
+            delete dataToUpdateFuture.dueDate;
+
+            await expenseRepo.updateFutureInSeries(target.seriesId, target.dueDate, dataToUpdateFuture);
+            break;
+
+        case 'PAST':
+            const dataToUpdatePast = { ...updateData };
+            delete dataToUpdatePast.dueDate;
+
+            await expenseRepo.updatePastInSeries(target.seriesId, target.dueDate, dataToUpdatePast);
+            break;
+    }
+
+    return await expenseRepo.update(id, updateData);
 }
 
-export async function removeExpense(id, deleteMode = "single") {
-    const historyItem = await expenseRepo.findHistoryById(id);
+export async function removeExpense(id, mode = 'SINGLE') {
+    const target = await expenseRepo.findById(id);
 
-    const templateItem = !historyItem ? await expenseRepo.findLongExpenseById(id) : null;
-
-    if (!historyItem && !templateItem) {
+    if (!target) {
         throw new Error("EXPENSE_NOT_FOUND");
     }
 
-    const templateId = historyItem ? historyItem.templateId : templateItem._id;
-
-    const today = normalizeDate(new Date());
-
-    if (historyItem && !historyItem.templateId) {
-        await expenseRepo.deleteShortExpense(id);
-        return;
+    if (!target.seriesId || mode === 'SINGLE') {
+        return await expenseRepo.deleteById(id);
     }
 
-    switch (deleteMode) {
-        case "all":
-            await expenseRepo.deleteLongExpense(templateId);
-            await expenseRepo.deleteHistoryByTemplateId(templateId);
-            break;
+    switch (mode) {
+        case 'ALL':
+            return await expenseRepo.deleteAllInSeries(target.seriesId);
 
-        case "future":
-            await expenseRepo.deleteLongExpense(templateId);
-            await expenseRepo.deleteHistoryFuture(templateId, today);
-            break;
+        case 'FUTURE':
+            return await expenseRepo.deleteFutureInSeries(target.seriesId, target.dueDate);
 
-        case "past":
-            await expenseRepo.deleteHistoryPast(templateId, today);
-            break;
+        case 'PAST':
+            return await expenseRepo.deletePastInSeries(target.seriesId, target.dueDate);
 
-        case "single":
         default:
-            if (historyItem) {
-                await expenseRepo.deleteShortExpense(id);
-            } else {
-                await expenseRepo.deleteLongExpense(id);
-            }
-            break;
+            return await expenseRepo.deleteById(id);
     }
 }

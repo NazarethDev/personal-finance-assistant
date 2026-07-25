@@ -1,67 +1,61 @@
-import { InvestmentHistory } from "../models/investmentsModels/investmentHistoryTemplate.js";
-import { InvestmentTemplate as LongInvestment } from "../models/investmentsModels/investmentTemplateSchema.js";
+import { Investment } from "../models/investmentsModels/Investment.js";
 
-export async function checkHistoryExists(id) {
-    return await InvestmentHistory.exists({ _id: id });
+export async function checkExists(id) {
+    return await Investment.exists({ _id: id });
 }
 
-export async function checkTemplateExists(id) {
-    return await LongInvestment.exists({ _id: id });
+export async function createSingle(data) {
+    return await Investment.create(data);
 }
 
-export async function saveShortInvestment(data) {
-    return await InvestmentHistory.create(data);
+export async function createMany(expensesArray) {
+    return await Investment.insertMany(expensesArray);
 }
 
-export async function saveLongInvestment(data) {
-    return await LongInvestment.create(data);
+export async function findById(id) {
+    return await Investment.findById(id);
 }
 
-export async function updateShortInvestment(id, data) {
-    return await InvestmentHistory.findByIdAndUpdate(
-        id,
-        { $set: data },
-        { returnDocument: 'after', runValidators: true }
+export async function update(id, updateData) {
+    return await Investment.findByIdAndUpdate(id, updateData, { returnDocument: 'after' });
+}
+
+export async function updateAllInSeries(seriesId, updateData) {
+    return await Investment.updateMany({ seriesId }, updateData);
+}
+
+export async function updateFutureInSeries(seriesId, fromDate, updateData) {
+    return await Investment.updateMany(
+        { seriesId, dueDate: { $gte: fromDate } },
+        updateData
     );
 }
 
-export async function updateLongInvestment(id, data) {
-    return await LongInvestment.findByIdAndUpdate(
-        id,
-        { $set: data },
-        { returnDocument: 'after', runValidators: true }
+export async function updatePastInSeries(seriesId, toDate, updateData) {
+    return await Investment.updateMany(
+        { seriesId, dueDate: { $lte: toDate } },
+        updateData
     );
 }
 
-export async function findHistoryById(id) {
-    return await InvestmentHistory.findById(id);
+export async function deleteById(id) {
+    return await Investment.findByIdAndDelete(id);
 }
 
-export async function findLongInvestmentById(id) {
-    return await LongInvestment.findById(id);
+export async function deleteAllInSeries(seriesId) {
+    return await Investment.deleteMany({ seriesId });
 }
 
-export async function deleteShortInvestment(id) {
-    return await InvestmentHistory.findByIdAndDelete(id);
-}
-
-export async function deleteLongInvestment(id) {
-    return await LongInvestment.findByIdAndDelete(id);
-}
-export async function deleteHistoryByTemplateId(templateId) {
-    return await InvestmentHistory.deleteMany({ templateId: templateId })
-}
-
-export async function deleteHistoryFuture(templateId, dateReference) {
-    return await InvestmentHistory.deleteMany({
-        templateId,
-        dueDate: { $gte: dateReference }
+export async function deleteFutureInSeries(seriesId, fromDate) {
+    return await Investment.deleteMany({
+        seriesId,
+        dueDate: { $gte: fromDate }
     });
 }
 
-export async function deleteHistoryPast(templateId, dateReference) {
-    return await InvestmentHistory.deleteMany({
-        templateId,
-        dueDate: { $lt: dateReference }
+export async function deletePastInSeries(seriesId, toDate) {
+    return await Investment.deleteMany({
+        seriesId,
+        dueDate: { $lte: toDate }
     });
 }

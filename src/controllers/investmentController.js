@@ -10,38 +10,9 @@ export async function handleCreatetInvestment(req, res) {
 
         return res.status(HttpStatusCode.Created).json(newInvestment);
     } catch (error) {
-        console.error("Erro ao criar histórico de investimento:", error);
+        console.error("Erro ao criar investimento:", error);
         return res.status(HttpStatusCode.BadRequest).json({
-            message: "Erro interno ao salvar o histórico de investimento.",
-            error: error.message
-        });
-    }
-}
-
-export async function handleDeleteInvestment(req, res) {
-    const { id } = req.params;
-    const deleteMode = req.query.deleteMode || "single";
-
-    try {
-        await investmentService.removeInvestment(id, deleteMode);
-
-        const feedbackMessages = {
-            all: 'A regra recorrente e todos os registros (passados e futuros) foram removidos.',
-            future: 'A regra recorrente foi encerrada e os lançamentos futuros foram removidos.',
-            past: 'Históricos passados vinculados à recorrência foram removidos.',
-            single: 'Registro deletado com sucesso.'
-        };
-
-        return res.status(HttpStatusCode.Ok).json({
-            message: feedbackMessages[deleteMode] || feedbackMessages.single
-        });
-
-    } catch (error) {
-        if (error.message === "INVESTMENT_NOT_FOUND") {
-            return res.status(HttpStatusCode.NotFound).json({ message: 'Investment not found' });
-        }
-        return res.status(HttpStatusCode.BadRequest).json({
-            message: "Erro interno ao deletar o investimento.",
+            message: "Erro interno ao salvar investimento.",
             error: error.message
         });
     }
@@ -50,16 +21,44 @@ export async function handleDeleteInvestment(req, res) {
 export async function handleUpdateInvestment(req, res) {
     try {
         const { id } = req.params;
-        const cleanUpdateData = updateInvestmentDTO(req.body);
-        const updatedInvestment = await investmentService.modifyInvestment(id, cleanUpdateData);
+
+        const parsedBody = updateInvestmentDTO(req.body);
+
+        const updatedInvestment = await investmentService.modifyInvestment(id, parsedBody);
 
         return res.status(HttpStatusCode.Ok).json(updatedInvestment);
+
     } catch (error) {
         if (error.message === "INVESTMENT_NOT_FOUND") {
             return res.status(HttpStatusCode.NotFound).json({ message: 'Investment not found' });
         }
         return res.status(HttpStatusCode.BadRequest).json({
-            message: "Erro interno ao atualizar o investimento.",
+            message: "Erro interno ao atualizar investimento.",
+            error: error.message
+        });
+    }
+}
+
+export async function handleDeleteInvestment(req, res) {
+    try {
+        const { id } = req.params;
+
+        const validModes = ['SINGLE', 'ALL', 'FUTURE', 'PAST'];
+        const rawMode = req.query.mode?.toUpperCase();
+        const mode = validModes.includes(rawMode) ? rawMode : 'SINGLE';
+
+        await investmentService.removeInvestment(id, mode);
+
+        return res.status(HttpStatusCode.Ok).json({
+            message: `investimento(s) removido(s) com sucesso. (Modo: ${mode})`
+        });
+
+    } catch (error) {
+        if (error.message === "INVESTMENT_NOT_FOUND") {
+            return res.status(HttpStatusCode.NotFound).json({ message: 'Investment not found' });
+        }
+        return res.status(HttpStatusCode.BadRequest).json({
+            message: "Erro interno ao deletar investimento.",
             error: error.message
         });
     }
