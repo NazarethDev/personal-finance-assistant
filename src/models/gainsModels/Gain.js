@@ -11,7 +11,7 @@ const gainSchema = new mongoose.Schema({
         required: true,
         enum: Object.values(gainsCategories)
     },
-    gainFrequency: {
+    frequency: {
         type: String,
         required: true,
         enum: [...Object.keys(frequency), ...Object.values(frequency)]

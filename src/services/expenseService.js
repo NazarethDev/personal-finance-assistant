@@ -6,9 +6,9 @@ import { calculateNextDate } from "../utils/calculateNextDate.js";
 import { frequency } from "../models/frequencyEnum.js";
 
 export async function create(data) {
-    const isRecurrent = data.expenseFrequency &&
-        data.expenseFrequency !== frequency.ONCE &&
-        data.expenseFrequency !== 'ONCE';
+    const isRecurrent = data.frequency &&
+        data.frequency !== frequency.ONCE &&
+        data.frequency !== 'ONCE';
 
     if (!isRecurrent) {
         return await expenseRepo.createSingle({
@@ -33,14 +33,14 @@ export async function create(data) {
             name: data.name,
             amount: data.amount,
             category: data.category,
-            expenseFrequency: data.expenseFrequency,
+            frequency: data.frequency,
             seriesId: seriesId,
             dueDate: new Date(currentDueDate),
             startDate: startDate,
             finishDate: data.finishDate ? new Date(data.finishDate) : null
         });
 
-        currentDueDate = calculateNextDate(currentDueDate, data.expenseFrequency);
+        currentDueDate = calculateNextDate(currentDueDate, data.frequency);
     }
 
     const createdExpenses = await expenseRepo.createMany(expensesToCreate);

@@ -5,7 +5,7 @@ export function createExpenseDTO({
     name,
     amount,
     category,
-    expenseFrequency,
+    frequency,
     dueDate,
     startDate,
     finishDate,
@@ -15,16 +15,16 @@ export function createExpenseDTO({
     const normalizedStartDate = normalizeDate(startDate || dueDate);
     const normalizedFinishDate = finishDate ? normalizeDate(finishDate) : null;
 
-    const isShortExpense = !expenseFrequency || expenseFrequency === frequency.ONCE || expenseFrequency === "ONCE";
+    const isShortExpense = !frequency || frequency === frequency.ONCE || frequency === "ONCE";
     const normalizedFrequency = isShortExpense
         ? (frequency.ONCE || 'apenas uma vez')
-        : (frequency[expenseFrequency] || expenseFrequency);
+        : (frequency[frequency] || frequency);
 
     return {
         name: String(name),
         amount: Number(amount),
         category: category,
-        expenseFrequency: normalizedFrequency,
+        frequency: normalizedFrequency,
         seriesId: seriesId || null,
         dueDate: normalizedDueDate,
         startDate: normalizedStartDate,
@@ -40,11 +40,11 @@ export function updateExpenseDTO(body) {
     if (body.category !== undefined) updateData.category = body.category;
     if (body.seriesId !== undefined) updateData.seriesId = body.seriesId || null;
 
-    if (body.expenseFrequency !== undefined) {
-        const isShort = !body.expenseFrequency || body.expenseFrequency === frequency.ONCE || body.expenseFrequency === "ONCE";
-        updateData.expenseFrequency = isShort
+    if (body.frequency !== undefined) {
+        const isShort = !body.frequency || body.frequency === frequency.ONCE || body.frequency === "ONCE";
+        updateData.frequency = isShort
             ? (frequency.ONCE || 'apenas uma vez')
-            : (frequency[body.expenseFrequency] || body.expenseFrequency);
+            : (frequency[body.frequency] || body.frequency);
     }
 
     if (body.dueDate !== undefined) updateData.dueDate = normalizeDate(body.dueDate);

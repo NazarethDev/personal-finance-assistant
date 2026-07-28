@@ -5,7 +5,7 @@ export function createInvestmentDTO({
     name,
     amount,
     category,
-    investmentFrequency,
+    frequency,
     dueDate,
     startDate,
     finishDate,
@@ -15,16 +15,16 @@ export function createInvestmentDTO({
     const normalizedStartDate = normalizeDate(startDate || dueDate);
     const normalizedFinishDate = finishDate ? normalizeDate(finishDate) : null;
 
-    const isShortInvestment = !investmentFrequency || investmentFrequency === frequency.ONCE || investmentFrequency === "ONCE";
+    const isShortInvestment = !frequency || frequency === frequency.ONCE || frequency === "ONCE";
     const normalizedFrequency = isShortInvestment
         ? (frequency.ONCE || 'apenas uma vez')
-        : (frequency[investmentFrequency] || investmentFrequency);
+        : (frequency[frequency] || frequency);
 
     return {
         name: String(name),
         amount: Number(amount),
         category: category,
-        investmentFrequency: normalizedFrequency,
+        frequency: normalizedFrequency,
         seriesId: seriesId || null,
         dueDate: normalizedDueDate,
         startDate: normalizedStartDate,
@@ -40,11 +40,11 @@ export function updateInvestmentDTO(body) {
     if (body.category !== undefined) updateData.category = body.category;
     if (body.seriesId !== undefined) updateData.seriesId = body.seriesId || null;
 
-    if (body.investmentFrequency !== undefined) {
-        const isShort = !body.investmentFrequency || body.investmentFrequency === frequency.ONCE || body.investmentFrequency === "ONCE";
-        updateData.investmentFrequency = isShort
+    if (body.frequency !== undefined) {
+        const isShort = !body.frequency || body.frequency === frequency.ONCE || body.frequency === "ONCE";
+        updateData.frequency = isShort
             ? (frequency.ONCE || 'apenas uma vez')
-            : (frequency[body.investmentFrequency] || body.investmentFrequency);
+            : (frequency[body.frequency] || body.frequency);
     }
 
     if (body.dueDate !== undefined) updateData.dueDate = normalizeDate(body.dueDate);

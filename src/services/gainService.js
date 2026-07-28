@@ -10,9 +10,9 @@ async function verifyExistence(id) {
 }
 
 export async function create(data) {
-    const isRecurrent = data.gainFrequency &&
-        data.gainFrequency !== frequency.ONCE &&
-        data.gainFrequency !== 'ONCE';
+    const isRecurrent = data.frequency &&
+        data.frequency !== frequency.ONCE &&
+        data.frequency !== 'ONCE';
 
     if (!isRecurrent) {
         return await gainRepo.createSingle({
@@ -37,14 +37,14 @@ export async function create(data) {
             name: data.name,
             amount: data.amount,
             category: data.category,
-            gainFrequency: data.gainFrequency,
+            frequency: data.frequency,
             seriesId: seriesId,
             dueDate: new Date(currentDueDate),
             startDate: startDate,
             finishDate: data.finishDate ? new Date(data.finishDate) : null
         });
 
-        currentDueDate = calculateNextDate(currentDueDate, data.gainFrequency);
+        currentDueDate = calculateNextDate(currentDueDate, data.frequency);
     }
 
     const createdGains = await gainRepo.createMany(gainsToCreate);

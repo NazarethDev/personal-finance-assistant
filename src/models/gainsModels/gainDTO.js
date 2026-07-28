@@ -5,7 +5,7 @@ export function createGainDTO({
     name,
     amount,
     category,
-    gainFrequency,
+    frequency,
     dueDate,
     startDate,
     finishDate,
@@ -15,16 +15,16 @@ export function createGainDTO({
     const normalizedStartDate = normalizeDate(startDate || dueDate);
     const normalizedFinishDate = finishDate ? normalizeDate(finishDate) : null;
 
-    const isShortGain = !gainFrequency || gainFrequency === frequency.ONCE || gainFrequency === "ONCE";
+    const isShortGain = !frequency || frequency === frequency.ONCE || frequency === "ONCE";
     const normalizedFrequency = isShortGain
         ? (frequency.ONCE || 'apenas uma vez')
-        : (frequency[gainFrequency] || gainFrequency);
+        : (frequency[frequency] || frequency);
 
     return {
         name: String(name),
         amount: Number(amount),
         category: category,
-        gainFrequency: normalizedFrequency,
+        frequency: normalizedFrequency,
         seriesId: seriesId || null,
         dueDate: normalizedDueDate,
         startDate: normalizedStartDate,
@@ -40,11 +40,11 @@ export function updateGainDTO(body) {
     if (body.category !== undefined) updateData.category = body.category;
     if (body.seriesId !== undefined) updateData.seriesId = body.seriesId || null;
 
-    if (body.gainFrequency !== undefined) {
-        const isShort = !body.gainFrequency || body.gainFrequency === frequency.ONCE || body.gainFrequency === "ONCE";
-        updateData.gainFrequency = isShort
+    if (body.frequency !== undefined) {
+        const isShort = !body.frequency || body.frequency === frequency.ONCE || body.frequency === "ONCE";
+        updateData.frequency = isShort
             ? (frequency.ONCE || 'apenas uma vez')
-            : (frequency[body.gainFrequency] || body.gainFrequency);
+            : (frequency[body.frequency] || body.frequency);
     }
 
     if (body.dueDate !== undefined) updateData.dueDate = normalizeDate(body.dueDate);
