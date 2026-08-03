@@ -42,20 +42,20 @@ export function updateGainDTO(body) {
 
     if (body.frequency !== undefined) {
         const isShort = !body.frequency || body.frequency === frequency.ONCE || body.frequency === "ONCE";
-        updateData.frequency = isShort
-            ? (frequency.ONCE || 'apenas uma vez')
-            : (frequency[body.frequency] || body.frequency);
+
+        if (isShort) {
+            updateData.frequency = frequency.ONCE;
+        } else {
+            updateData.frequency = frequency[body.frequency] || body.frequency;
+        }
     }
 
     if (body.dueDate !== undefined) updateData.dueDate = normalizeDate(body.dueDate);
     if (body.startDate !== undefined) updateData.startDate = normalizeDate(body.startDate);
     if (body.finishDate !== undefined) updateData.finishDate = body.finishDate ? normalizeDate(body.finishDate) : null;
 
-    const validModes = ['SINGLE', 'ALL', 'FUTURE', 'PAST'];
-    const mode = validModes.includes(body.mode) ? body.mode : 'SINGLE';
-
     return {
         updateData,
-        mode
+        mode: body.mode
     };
-}
+} 

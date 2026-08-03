@@ -24,7 +24,7 @@ const investmentSchema = new mongoose.Schema({
     frequency: {
         type: String,
         required: true,
-        enum: Object.values(frequency)
+        enum: [...Object.keys(frequency), ...Object.values(frequency)]
     },
     seriesId: {
         type: mongoose.Schema.Types.ObjectId,

@@ -42,10 +42,7 @@ export async function handleUpdateInvestment(req, res) {
 export async function handleDeleteInvestment(req, res) {
     try {
         const { id } = req.params;
-
-        const validModes = ['SINGLE', 'ALL', 'FUTURE', 'PAST'];
-        const rawMode = req.query.mode?.toUpperCase();
-        const mode = validModes.includes(rawMode) ? rawMode : 'SINGLE';
+        const { mode = 'SINGLE' } = req.query;
 
         await investmentService.removeInvestment(id, mode);
 

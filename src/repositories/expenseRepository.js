@@ -38,7 +38,6 @@ export async function updatePastInSeries(seriesId, toDate, updateData) {
     );
 }
 
-
 export async function deleteById(id) {
     return await Expense.findByIdAndDelete(id);
 }
@@ -59,4 +58,13 @@ export async function deletePastInSeries(seriesId, toDate) {
         seriesId,
         dueDate: { $lte: toDate }
     });
+}
+
+export async function findBySeries(seriesId, fromDate = null) {
+    const query = { seriesId };
+    if (fromDate) {
+        query.dueDate = { $gte: fromDate };
+    }
+
+    return await Expense.find(query).sort({ dueDate: 1 });
 }

@@ -59,3 +59,12 @@ export async function deletePastInSeries(seriesId, toDate) {
         dueDate: { $lte: toDate }
     });
 }
+
+export async function findBySeries(seriesId, fromDate = null) {
+    const query = { seriesId };
+    if (fromDate) {
+        query.dueDate = { $gte: fromDate };
+    }
+
+    return await Investment.find(query).sort({ dueDate: 1 });
+} 
