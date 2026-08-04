@@ -21,6 +21,10 @@ export async function create(data) {
         });
     }
 
+    const dueDate = data.dueDate
+        ? normalizeDate(data.dueDate)
+        : normalizeDate(new Date());
+
     const startDate = data.startDate
         ? normalizeDate(data.startDate)
         : normalizeDate(new Date());
