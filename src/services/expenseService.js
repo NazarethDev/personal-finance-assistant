@@ -1,22 +1,33 @@
 import mongoose from "mongoose";
-import * as expenseRepo from "../repositories/expenseRepository.js";
+import * as repo from "../repositories/expenseRepository.js";
 
 import { normalizeDate } from "../utils/normalizeDate.js";
 import { normalizeMode } from "../utils/normalizeMode.js"
 import { frequency } from "../models/frequencyEnum.js";
 import { generateRecurrentSeries } from "../utils/generateRecurrentSeries.js";
+import { calculateNextDate } from "../utils/calculateNextDate.js";
 
 export async function create(data) {
-    const isRecurrent = data.frequency &&
+    const isRecurrent =
+        data.frequency &&
         data.frequency !== frequency.ONCE &&
-        data.frequency !== 'ONCE';
+        data.frequency !== "ONCE" &&
+        data.frequency !== "apenas uma vez";
 
     if (!isRecurrent) {
-        return await expenseRepo.createSingle({
+        return await repo.createSingle({
             ...data,
             seriesId: null
         });
     }
+
+    const startDate = data.startDate
+        ? normalizeDate(data.startDate)
+        : normalizeDate(new Date());
+
+    const finishDate = data.finishDate
+        ? normalizeDate(data.finishDate)
+        : calculateNextDate(startDate, frequency.YEARLY);
 
     const seriesId = new mongoose.Types.ObjectId();
 
@@ -27,19 +38,17 @@ export async function create(data) {
             category: data.category,
         },
         seriesId,
-        startDate: data.startDate,
+        startDate,
         dueDate: data.dueDate,
-        finishDate: data.finishDate,
+        finishDate,
         newFrequency: data.frequency,
     });
 
-    const createdExpenses = await expenseRepo.createMany(expensesToCreate);
-
-    return createdExpenses;
+    return await repo.createMany(expensesToCreate);
 }
 
 export async function modifyExpense(id, { updateData, mode }) {
-    const target = await expenseRepo.findById(id);
+    const target = await repo.findById(id);
     mode = normalizeMode(mode);
 
     if (!target) {
@@ -64,7 +73,7 @@ export async function modifyExpense(id, { updateData, mode }) {
 
     if (isTargetOnce && !isNewOnce) {
         const newSeriesId = new mongoose.Types.ObjectId();
-        await expenseRepo.deleteById(target._id);
+        await repo.deleteById(target._id);
 
         const expensesToCreate = generateRecurrentSeries({
             baseData: mergedData,
@@ -75,20 +84,20 @@ export async function modifyExpense(id, { updateData, mode }) {
             newFrequency: mergedData.frequency
         });
 
-        return await expenseRepo.createMany(expensesToCreate);
+        return await repo.createMany(expensesToCreate);
     }
 
     if (frequencyChanged && target.seriesId) {
         switch (mode) {
             case 'ALL': {
-                const currentSeries = await expenseRepo.findBySeries(target.seriesId);
+                const currentSeries = await repo.findBySeries(target.seriesId);
 
                 const firstItem = currentSeries[0] || target;
 
                 const seriesStartDate = updateData.startDate ? new Date(updateData.startDate) : firstItem.startDate;
                 const seriesDueDate = updateData.dueDate ? new Date(updateData.dueDate) : firstItem.dueDate;
 
-                await expenseRepo.deleteAllInSeries(target.seriesId);
+                await repo.deleteAllInSeries(target.seriesId);
 
                 const items = generateRecurrentSeries({
                     baseData: mergedData,
@@ -99,11 +108,11 @@ export async function modifyExpense(id, { updateData, mode }) {
                     newFrequency: mergedData.frequency
                 });
 
-                return await expenseRepo.createMany(items);
+                return await repo.createMany(items);
             }
 
             case 'FUTURE': {
-                await expenseRepo.deleteFutureInSeries(target.seriesId, target.dueDate);
+                await repo.deleteFutureInSeries(target.seriesId, target.dueDate);
 
                 const items = generateRecurrentSeries({
                     baseData: mergedData,
@@ -113,11 +122,11 @@ export async function modifyExpense(id, { updateData, mode }) {
                     finishDate: mergedData.finishDate,
                     newFrequency: mergedData.frequency
                 });
-                return await expenseRepo.createMany(items);
+                return await repo.createMany(items);
             }
 
             case 'PAST': {
-                await expenseRepo.deletePastInSeries(target.seriesId, target.dueDate);
+                await repo.deletePastInSeries(target.seriesId, target.dueDate);
 
                 const items = generateRecurrentSeries({
                     baseData: mergedData,
@@ -127,12 +136,12 @@ export async function modifyExpense(id, { updateData, mode }) {
                     finishDate: target.dueDate,
                     newFrequency: mergedData.frequency
                 });
-                return await expenseRepo.createMany(items);
+                return await repo.createMany(items);
             }
 
             case 'SINGLE':
             default: {
-                return await expenseRepo.update(id, {
+                return await repo.update(id, {
                     ...updateData,
                     seriesId: isNewOnce ? null : new mongoose.Types.ObjectId()
                 });
@@ -141,12 +150,12 @@ export async function modifyExpense(id, { updateData, mode }) {
     }
 
     if (!target.seriesId || mode === 'SINGLE') {
-        return await expenseRepo.update(id, updateData);
+        return await repo.update(id, updateData);
     }
 
     switch (mode) {
         case 'ALL': {
-            const currentSeries = await expenseRepo.findBySeries(target.seriesId);
+            const currentSeries = await repo.findBySeries(target.seriesId);
             const firstItem = currentSeries[0] || target;
             const lastItem = currentSeries[currentSeries.length - 1] || target;
 
@@ -156,7 +165,7 @@ export async function modifyExpense(id, { updateData, mode }) {
                 ? (updateData.finishDate ? new Date(updateData.finishDate) : null)
                 : (lastItem.finishDate ? new Date(lastItem.finishDate) : null);
 
-            await expenseRepo.deleteAllInSeries(target.seriesId);
+            await repo.deleteAllInSeries(target.seriesId);
 
             const items = generateRecurrentSeries({
                 baseData: {
@@ -170,23 +179,23 @@ export async function modifyExpense(id, { updateData, mode }) {
                 newFrequency: mergedData.frequency
             });
 
-            return await expenseRepo.createMany(items);
+            return await repo.createMany(items);
         }
         case 'FUTURE':
-            await expenseRepo.updateFutureInSeries(target.seriesId, target.dueDate, updateData);
-            return await expenseRepo.findBySeries(target.seriesId, target.dueDate);
+            await repo.updateFutureInSeries(target.seriesId, target.dueDate, updateData);
+            return await repo.findBySeries(target.seriesId, target.dueDate);
 
         case 'PAST':
-            await expenseRepo.updatePastInSeries(target.seriesId, target.dueDate, updateData);
-            return await expenseRepo.findBySeries(target.seriesId);
+            await repo.updatePastInSeries(target.seriesId, target.dueDate, updateData);
+            return await repo.findBySeries(target.seriesId);
 
         default:
-            return await expenseRepo.update(id, updateData);
+            return await repo.update(id, updateData);
     }
 }
 
 export async function removeExpense(id, mode) {
-    const target = await expenseRepo.findById(id);
+    const target = await repo.findById(id);
     mode = normalizeMode(mode);
 
     if (!target) {
@@ -194,20 +203,20 @@ export async function removeExpense(id, mode) {
     }
 
     if (!target.seriesId || mode === 'SINGLE') {
-        return await expenseRepo.deleteById(id);
+        return await repo.deleteById(id);
     }
 
     switch (mode) {
         case 'ALL':
-            return await expenseRepo.deleteAllInSeries(target.seriesId);
+            return await repo.deleteAllInSeries(target.seriesId);
 
         case 'FUTURE':
-            return await expenseRepo.deleteFutureInSeries(target.seriesId, target.dueDate);
+            return await repo.deleteFutureInSeries(target.seriesId, target.dueDate);
 
         case 'PAST':
-            return await expenseRepo.deletePastInSeries(target.seriesId, target.dueDate);
+            return await repo.deletePastInSeries(target.seriesId, target.dueDate);
 
         default:
-            return await expenseRepo.deleteById(id);
+            return await repo.deleteById(id);
     }
 }
