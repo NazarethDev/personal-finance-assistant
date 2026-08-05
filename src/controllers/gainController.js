@@ -60,3 +60,43 @@ export async function handleDeleteGain(req, res) {
         });
     }
 }
+
+export async function handleGetGainsByMonth(req, res) {
+    try {
+        const { year, month } = req.query;
+
+        const data = await gainService.getByMonth(year, month);
+
+        return res.status(HttpStatusCode.Ok).json(data);
+    } catch (error) {
+        if (error.message === "INVALID_DATE_PARAMETERS") {
+            return res.status(HttpStatusCode.BadRequest).json({
+                message: "Mês ou ano inválidos. Informe um ano válido e um mês entre 1 e 12."
+            });
+        }
+        return res.status(HttpStatusCode.InternalServerError).json({
+            message: "Erro interno ao buscar receitas do mês.",
+            error: error.message
+        });
+    }
+}
+
+export async function handleGetGainsBySeries(req, res) {
+    try {
+        const { seriesId } = req.params;
+
+        const data = await gainService.getBySeries(seriesId);
+
+        return res.status(HttpStatusCode.Ok).json(data);
+    } catch (error) {
+        if (error.message === "SERIES_NOT_FOUND") {
+            return res.status(HttpStatusCode.NotFound).json({
+                message: "Nenhuma receita encontrada para a série informada."
+            });
+        }
+        return res.status(HttpStatusCode.InternalServerError).json({
+            message: "Erro interno ao buscar despesas da série.",
+            error: error.message
+        });
+    }
+}

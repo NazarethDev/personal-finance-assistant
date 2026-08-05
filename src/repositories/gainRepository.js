@@ -68,4 +68,16 @@ export async function findBySeries(seriesId, fromDate = null) {
     }
 
     return await Gain.find(query).sort({ dueDate: 1 });
-} 
+}
+
+export async function findByMonth(year, month) {
+    const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0));
+    const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
+
+    return await Gain.find({
+        dueDate: {
+            $gte: startDate,
+            $lte: endDate
+        }
+    }).sort({ dueDate: 1 });
+}

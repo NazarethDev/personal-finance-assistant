@@ -5,5 +5,6 @@ const investmentsRouter = Router();
 investmentsRouter.post("/create", investmentController.handleCreatetInvestment);
 investmentsRouter.delete("/:id", investmentController.handleDeleteInvestment);
 investmentsRouter.put("/:id", investmentController.handleUpdateInvestment);
-
+investmentsRouter.get("/monthly", investmentController.handleGetInvestmentsByMonth);
+investmentsRouter.get("/series/:seriesId", investmentController.handleGetInvestmentsBySeries);
 export default investmentsRouter;

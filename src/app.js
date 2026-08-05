@@ -6,6 +6,7 @@ import { corsOptions } from "./config/corsOptions.js";
 import gainsRouter from "./routes/gainsRoutes.js";
 import expensesRouter from "./routes/expensesRoutes.js";
 import investmentsRouter from "./routes/investmentsRoutes.js";
+import analyticsRouter from "./routes/analyticsRoutes.js";
 
 
 const app = express();
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use("/gains", gainsRouter);
 app.use("/expenses", expensesRouter);
 app.use("/investments", investmentsRouter);
+app.use("/analytics", analyticsRouter);
 
 app.use((req, res, next) => {
     console.log(`[DEBUG] Method: ${req.method} | URL: ${req.url} | Path: ${req.path}`);

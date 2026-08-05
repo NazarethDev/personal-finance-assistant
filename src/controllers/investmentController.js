@@ -60,3 +60,43 @@ export async function handleDeleteInvestment(req, res) {
         });
     }
 }
+
+export async function handleGetInvestmentsByMonth(req, res) {
+    try {
+        const { year, month } = req.query;
+
+        const data = await investmentService.getByMonth(year, month);
+
+        return res.status(HttpStatusCode.Ok).json(data);
+    } catch (error) {
+        if (error.message === "INVALID_DATE_PARAMETERS") {
+            return res.status(HttpStatusCode.BadRequest).json({
+                message: "Mês ou ano inválidos. Informe um ano válido e um mês entre 1 e 12."
+            });
+        }
+        return res.status(HttpStatusCode.InternalServerError).json({
+            message: "Erro interno ao buscar investimentos do mês.",
+            error: error.message
+        });
+    }
+}
+
+export async function handleGetInvestmentsBySeries(req, res) {
+    try {
+        const { seriesId } = req.params;
+
+        const data = await investmentService.getBySeries(seriesId);
+
+        return res.status(HttpStatusCode.Ok).json(data);
+    } catch (error) {
+        if (error.message === "SERIES_NOT_FOUND") {
+            return res.status(HttpStatusCode.NotFound).json({
+                message: "Nenhum investimento encontrada para a série informada."
+            });
+        }
+        return res.status(HttpStatusCode.InternalServerError).json({
+            message: "Erro interno ao buscar despesas da série.",
+            error: error.message
+        });
+    }
+}

@@ -38,7 +38,7 @@ const gainSchema = new mongoose.Schema({
     toObject: { virtuals: true }
 });
 
-gainSchema.virtual('dueDateDescription').get(function () {
+gainSchema.virtual('dueDateFormatted').get(function () {
     const freq = this.gainFrequency;
 
     if (freq === frequency.WEEKLY || freq === 'WEEKLY') {

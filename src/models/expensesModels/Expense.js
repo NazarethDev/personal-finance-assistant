@@ -38,7 +38,7 @@ const expenseSchema = new mongoose.Schema({
     toObject: { virtuals: true }
 });
 
-expenseSchema.virtual('dueDateDescription').get(function () {
+expenseSchema.virtual('dueDateFormatted').get(function () {
     const freq = this.expenseFrequency;
 
     if (freq === frequency.WEEKLY || freq === 'WEEKLY') {

@@ -52,6 +52,32 @@ export async function create(data) {
     return await repo.createMany(investmentsToCreate);
 }
 
+
+export async function getByMonth(year, month) {
+    const parsedYear = parseInt(year, 10);
+    const parsedMonth = parseInt(month, 10);
+
+    if (isNaN(parsedYear) || isNaN(parsedMonth) || parsedMonth < 1 || parsedMonth > 12) {
+        throw new Error("INVALID_DATE_PARAMETERS");
+    }
+
+    return await repo.findByMonth(parsedYear, parsedMonth);
+}
+
+export async function getBySeries(seriesId) {
+    if (!seriesId) {
+        throw new Error("SERIES_ID_REQUIRED");
+    }
+
+    const data = await repo.findBySeries(seriesId);
+
+    if (!data || data.length === 0) {
+        throw new Error("SERIES_NOT_FOUND");
+    }
+
+    return data;
+}
+
 export async function modifyInvestment(id, { updateData, mode }) {
     const target = await repo.findById(id);
     mode = normalizeMode(mode);
