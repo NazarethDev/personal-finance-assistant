@@ -7,6 +7,7 @@ import gainsRouter from "./routes/gainsRoutes.js";
 import expensesRouter from "./routes/expensesRoutes.js";
 import investmentsRouter from "./routes/investmentsRoutes.js";
 import analyticsRouter from "./routes/analyticsRoutes.js";
+import healthRouter from "./routes/healthRoutes.js";
 
 
 const app = express();
@@ -14,6 +15,7 @@ const app = express();
 app.use(cors(corsOptions));
 app.use(express.json());
 
+app.use("/health", healthRouter);
 app.use("/gains", gainsRouter);
 app.use("/expenses", expensesRouter);
 app.use("/investments", investmentsRouter);

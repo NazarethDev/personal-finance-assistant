@@ -5,7 +5,8 @@
   "description": "API do assistente de finanças pessoais.",
   "main": "index.js",
   "scripts": {
-    "dev": "node src/server.js"
+    "dev": "node src/server.js",
+    "seed": "node tests/seedDb.js"
   },
   "author": "Lorran Nazareth",
   "license": "ISC",

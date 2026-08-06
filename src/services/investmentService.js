@@ -101,7 +101,7 @@ export async function modifyInvestment(id, { updateData, mode }) {
     mode = normalizeMode(mode);
 
     if (!target) {
-        throw new Error("GAIN_NOT_FOUND");
+        throw new Error("INVESTMENT_NOT_FOUND");
     }
 
     const isTargetOnce = target.frequency === frequency.ONCE || target.frequency === 'ONCE';
