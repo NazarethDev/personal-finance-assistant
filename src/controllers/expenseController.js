@@ -101,7 +101,6 @@ export async function handleGetExpensesBySeries(req, res) {
     }
 }
 
-// GET /expenses/category?category=habitação&year=2026&month=8
 export async function handleGetExpensesByCategoryAndMonth(req, res) {
     try {
         const { category, year, month } = req.query;

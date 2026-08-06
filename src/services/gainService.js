@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import * as repo from "../repositories/gainRepository.js";
 
-import { normalizeDate } from "../utils/normalizeDate.js";
+import { normalizeDate, normalizeDateToCurrentDate } from "../utils/normalizeDate.js";
 import { normalizeMode } from "../utils/normalizeMode.js";
 import { calculateNextDate } from "../utils/calculateNextDate.js";
 import { generateRecurrentSeries } from "../utils/generateRecurrentSeries.js";
@@ -55,10 +55,10 @@ export async function create(data) {
 }
 
 export async function getByMonth(year, month) {
-    const parsedYear = parseInt(year, 10);
-    const parsedMonth = parseInt(month, 10);
 
-    if (isNaN(parsedYear) || isNaN(parsedMonth) || parsedMonth < 1 || parsedMonth > 12) {
+    const { year: finalYear, month: finalMonth } = normalizeDateToCurrentDate(year, month);
+
+    if (isNaN(finalYear) || isNaN(finalMonth) || finalMonth < 1 || finalMonth > 12) {
         throw new Error("INVALID_DATE_PARAMETERS");
     }
 
@@ -80,10 +80,10 @@ export async function getBySeries(seriesId) {
 }
 
 export async function getByCategoryAndMonth(category, year, month) {
-    const parsedYear = parseInt(year, 10);
-    const parsedMonth = parseInt(month, 10);
 
-    if (isNaN(parsedYear) || isNaN(parsedMonth) || parsedMonth < 1 || parsedMonth > 12) {
+    const { year: finalYear, month: finalMonth } = normalizeDateToCurrentDate(year, month);
+
+    if (isNaN(finalYear) || isNaN(finalMonth) || finalMonth < 1 || finalMonth > 12) {
         throw new Error("INVALID_DATE_PARAMETERS");
     }
 
@@ -92,7 +92,7 @@ export async function getByCategoryAndMonth(category, year, month) {
         throw new Error("INVALID_CATEGORY");
     }
 
-    return await repo.findByCategoryAndMonth(category, parsedYear, parsedMonth);
+    return await repo.findByCategoryAndMonth(category, finalYear, finalMonth);
 }
 
 export async function modifyGain(id, { updateData, mode }) {
