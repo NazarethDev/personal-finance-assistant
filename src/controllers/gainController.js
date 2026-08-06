@@ -100,3 +100,31 @@ export async function handleGetGainsBySeries(req, res) {
         });
     }
 }
+
+export async function handleGetGainsByCategoryAndMonth(req, res) {
+    try {
+        const { category, year, month } = req.query;
+
+        const data = await gainService.getByCategoryAndMonth(category, year, month);
+
+        return res.status(HttpStatusCode.Ok).json(data);
+    } catch (error) {
+        if (error.message === "INVALID_DATE_PARAMETERS") {
+            return res.status(HttpStatusCode.BadRequest).json({
+                message: "Mês ou ano inválidos. Informe um ano válido e um mês entre 1 e 12."
+            });
+        }
+
+        if (error.message === "INVALID_CATEGORY") {
+            return res.status(HttpStatusCode.BadRequest).json({
+                message: "Categoria inválida.",
+                error: error.message
+            });
+        }
+
+        return res.status(HttpStatusCode.InternalServerError).json({
+            message: "Erro interno ao buscar rceitas por categoria no mês.",
+            error: error.message
+        });
+    }
+}

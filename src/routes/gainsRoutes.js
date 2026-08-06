@@ -8,4 +8,6 @@ gainsRouter.delete("/:id", gainController.handleDeleteGain);
 gainsRouter.put("/:id", gainController.handleUpdateGain);
 gainsRouter.get("/monthly", gainController.handleGetGainsByMonth);
 gainsRouter.get("/series/:seriesId", gainController.handleGetGainsBySeries);
+gainsRouter.get("/category", gainController.handleGetGainsByCategoryAndMonth);
+
 export default gainsRouter;

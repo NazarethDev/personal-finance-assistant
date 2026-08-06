@@ -61,8 +61,6 @@ export async function handleDeleteExpense(req, res) {
     }
 }
 
-// GET /expenses/monthly?year=2026&month=8
-// OU aceitando na rota como params: GET /expenses/monthly/2026/8
 export async function handleGetExpensesByMonth(req, res) {
     try {
         const { year, month } = req.query; // ou req.params
@@ -83,7 +81,6 @@ export async function handleGetExpensesByMonth(req, res) {
     }
 }
 
-// GET /expenses/series/:seriesId
 export async function handleGetExpensesBySeries(req, res) {
     try {
         const { seriesId } = req.params;
@@ -99,6 +96,35 @@ export async function handleGetExpensesBySeries(req, res) {
         }
         return res.status(HttpStatusCode.InternalServerError).json({
             message: "Erro interno ao buscar despesas da série.",
+            error: error.message
+        });
+    }
+}
+
+// GET /expenses/category?category=habitação&year=2026&month=8
+export async function handleGetExpensesByCategoryAndMonth(req, res) {
+    try {
+        const { category, year, month } = req.query;
+
+        const data = await expenseService.getByCategoryAndMonth(category, year, month);
+
+        return res.status(HttpStatusCode.Ok).json(data);
+    } catch (error) {
+        if (error.message === "INVALID_DATE_PARAMETERS") {
+            return res.status(HttpStatusCode.BadRequest).json({
+                message: "Mês ou ano inválidos. Informe um ano válido e um mês entre 1 e 12."
+            });
+        }
+
+        if (error.message === "INVALID_CATEGORY") {
+            return res.status(HttpStatusCode.BadRequest).json({
+                message: "Categoria inválida.",
+                error: error.message
+            });
+        }
+
+        return res.status(HttpStatusCode.InternalServerError).json({
+            message: "Erro interno ao buscar despesas por categoria no mês.",
             error: error.message
         });
     }

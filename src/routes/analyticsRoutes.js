@@ -7,4 +7,3 @@ analyticsRouter.get("/general-analytics", analyticsController.getDashboardContro
 analyticsRouter.get("/calendar", analyticsController.getCalendarController);
 
 export default analyticsRouter;
-

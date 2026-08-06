@@ -8,5 +8,6 @@ expensesRouter.delete("/:id", expenseController.handleDeleteExpense);
 expensesRouter.put("/:id", expenseController.handleUpdateExpense);
 expensesRouter.get("/monthly", expenseController.handleGetExpensesByMonth);
 expensesRouter.get("/series/:seriesId", expenseController.handleGetExpensesBySeries);
+expensesRouter.get("/category", expenseController.handleGetExpensesByCategoryAndMonth);
 
 export default expensesRouter;

@@ -7,4 +7,6 @@ investmentsRouter.delete("/:id", investmentController.handleDeleteInvestment);
 investmentsRouter.put("/:id", investmentController.handleUpdateInvestment);
 investmentsRouter.get("/monthly", investmentController.handleGetInvestmentsByMonth);
 investmentsRouter.get("/series/:seriesId", investmentController.handleGetInvestmentsBySeries);
+investmentsRouter.get("/category", investmentController.handleGetInvestmentsByCategoryAndMonth);
+
 export default investmentsRouter;
