@@ -1,6 +1,5 @@
 import { fetchAllFinancialDataInSingleQuery } from "../repositories/analyticsRepository.js";
 
-// Helper simples e seguro para extrair o nome da categoria
 const getCategoryName = (doc) => {
     if (!doc.category) return 'Sem Categoria';
     if (typeof doc.category === 'object' && doc.category.name) {
@@ -132,3 +131,55 @@ export const getDashboardAnalytics = async (currentStart, currentEnd, previousSt
 
 const calcDelta = (prev, curr) => prev === 0 ? (curr > 0 ? 100 : 0) : Number((((curr - prev) / Math.abs(prev)) * 100).toFixed(2));
 const calcPct = (amount, total) => total > 0 ? Number(((amount / total) * 100).toFixed(2)) : 0;
+
+
+export const getCalendarData = async (startDateStr, endDateStr) => {
+    // 1. Busca os registros do mês
+    const { gains, expenses, investments } = await fetchAllFinancialDataInSingleQuery(startDateStr, endDateStr);
+
+    const start = new Date(startDateStr);
+    const end = new Date(endDateStr);
+
+    let runningBalance = 0;
+    const calendarDays = {};
+
+    // 2. Monta o Mapa do Calendário dia a dia
+    for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+        const currentDayStr = d.toISOString().split('T')[0];
+
+        // Vencimentos do Dia
+        const dayGains = gains.filter(g => new Date(g.dueDate).toISOString().split('T')[0] === currentDayStr);
+        const dayExpenses = expenses.filter(e => new Date(e.dueDate).toISOString().split('T')[0] === currentDayStr);
+        const dayInvestments = investments.filter(i => new Date(i.dueDate).toISOString().split('T')[0] === currentDayStr);
+
+        const sumGains = dayGains.reduce((s, g) => s + g.amount, 0);
+        const sumExpenses = dayExpenses.reduce((s, e) => s + e.amount, 0);
+        const sumInvestments = dayInvestments.reduce((s, i) => s + i.amount, 0);
+
+        // Saldo Projetado Acumulado do Dia
+        runningBalance += sumGains - (sumExpenses + sumInvestments);
+
+        // Preenche o objeto com a chave da data 'YYYY-MM-DD'
+        calendarDays[currentDayStr] = {
+            date: currentDayStr,
+            dayGainsTotal: sumGains,
+            dayExpensesTotal: sumExpenses,
+            dayInvestmentsTotal: sumInvestments,
+            accumulatedBalance: runningBalance,
+            // Status para o Calendário no App
+            status: runningBalance >= 0 ? "POSITIVE" : "NEGATIVE",
+            hasEvents: (dayGains.length + dayExpenses.length + dayInvestments.length) > 0,
+            // Lista resumida de contas a vencer no dia para o modal do calendário
+            itemsDueToday: [
+                ...dayGains.map(g => ({ id: g._id, name: g.name, amount: g.amount, type: 'GAIN', category: g.category })),
+                ...dayExpenses.map(e => ({ id: e._id, name: e.name, amount: e.amount, type: 'EXPENSE', category: e.category })),
+                ...dayInvestments.map(i => ({ id: i._id, name: i.name, amount: i.amount, type: 'INVESTMENT', category: i.category }))
+            ]
+        };
+    }
+
+    return {
+        month: startDateStr.substring(0, 7), // Ex: "2026-08"
+        days: calendarDays
+    };
+};
