@@ -1,6 +1,7 @@
 import * as gainService from "../services/gainService.js";
 import { HttpStatusCode } from "axios";
 import { createGainDTO, updateGainDTO } from "../models/gainsModels/gainDTO.js";
+import { validateOperationMode } from "../utils/normalizeMode.js";
 
 export async function handleCreateGain(req, res) {
     try {
@@ -24,6 +25,10 @@ export async function handleUpdateGain(req, res) {
 
         const parsedBody = updateGainDTO(req.body);
 
+        if (parsedBody.mode) {
+            parsedBody.mode = validateOperationMode(parsedBody.mode);
+        }
+
         const updatedGain = await gainService.modifyGain(id, parsedBody);
 
         return res.status(HttpStatusCode.Ok).json(updatedGain);
@@ -42,8 +47,8 @@ export async function handleUpdateGain(req, res) {
 export async function handleDeleteGain(req, res) {
     try {
         const { id } = req.params;
-        const { mode = 'SINGLE' } = req.query;
-
+        const mode = validateOperationMode(req.query.mode);
+        
         await gainService.removeGain(id, mode);
 
         return res.status(HttpStatusCode.Ok).json({

@@ -12,10 +12,6 @@ export async function createMany(gainsArray) {
     return await Gain.insertMany(gainsArray);
 }
 
-export async function findById(id) {
-    return await Gain.findById(id);
-}
-
 export async function update(id, updateData) {
     return await Gain.findByIdAndUpdate(id, updateData, { returnDocument: 'after' });
 }
@@ -37,7 +33,6 @@ export async function updatePastInSeries(seriesId, toDate, updateData) {
         updateData
     );
 }
-
 
 export async function deleteById(id) {
     return await Gain.findByIdAndDelete(id);
@@ -67,7 +62,7 @@ export async function findBySeries(seriesId, fromDate = null) {
         query.dueDate = { $gte: fromDate };
     }
 
-    return await Gain.find(query).sort({ dueDate: 1 });
+    return await Gain.find(query).populate("category").sort({ dueDate: 1 });
 }
 
 export async function findByMonth(year, month) {
@@ -79,18 +74,22 @@ export async function findByMonth(year, month) {
             $gte: startDate,
             $lte: endDate
         }
-    }).sort({ dueDate: 1 });
+    }).populate("category").sort({ dueDate: 1 });
 }
 
-export async function findByCategoryAndMonth(category, year, month) {
+export async function findByCategoryAndMonth(categoryId, year, month) {
     const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0));
     const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
     return await Gain.find({
-        category,
+        category: categoryId,
         dueDate: {
             $gte: startDate,
             $lte: endDate
         }
-    }).sort({ dueDate: 1 });
+    }).populate("category").sort({ dueDate: 1 });
+}
+
+export async function findById(id) {
+    return await Gain.findById(id).populate("category");
 }

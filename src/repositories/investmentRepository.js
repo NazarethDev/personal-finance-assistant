@@ -8,12 +8,8 @@ export async function createSingle(data) {
     return await Investment.create(data);
 }
 
-export async function createMany(expensesArray) {
-    return await Investment.insertMany(expensesArray);
-}
-
-export async function findById(id) {
-    return await Investment.findById(id);
+export async function createMany(investmentsArray) {
+    return await Investment.insertMany(investmentsArray);
 }
 
 export async function update(id, updateData) {
@@ -66,7 +62,7 @@ export async function findBySeries(seriesId, fromDate = null) {
         query.dueDate = { $gte: fromDate };
     }
 
-    return await Investment.find(query).sort({ dueDate: 1 });
+    return await Investment.find(query).populate("category").sort({ dueDate: 1 });
 }
 
 export async function findByMonth(year, month) {
@@ -78,18 +74,22 @@ export async function findByMonth(year, month) {
             $gte: startDate,
             $lte: endDate
         }
-    }).sort({ dueDate: 1 });
+    }).populate("category").sort({ dueDate: 1 });
 }
 
-export async function findByCategoryAndMonth(category, year, month) {
+export async function findByCategoryAndMonth(categoryId, year, month) {
     const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0));
     const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
     return await Investment.find({
-        category,
+        category: categoryId,
         dueDate: {
             $gte: startDate,
             $lte: endDate
         }
-    }).sort({ dueDate: 1 });
+    }).populate("category").sort({ dueDate: 1 });
+}
+
+export async function findById(id) {
+    return await Investment.findById(id).populate("category");
 }

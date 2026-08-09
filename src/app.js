@@ -6,6 +6,7 @@ import { corsOptions } from "./config/corsOptions.js";
 import gainsRouter from "./routes/gainsRoutes.js";
 import expensesRouter from "./routes/expensesRoutes.js";
 import investmentsRouter from "./routes/investmentsRoutes.js";
+import categoriesRouter from "../src/routes/categoriesRoutes.js";
 import analyticsRouter from "./routes/analyticsRoutes.js";
 import healthRouter from "./routes/healthRoutes.js";
 
@@ -20,6 +21,7 @@ app.use("/gains", gainsRouter);
 app.use("/expenses", expensesRouter);
 app.use("/investments", investmentsRouter);
 app.use("/analytics", analyticsRouter);
+app.use("/categories", categoriesRouter);
 
 app.use((req, res, next) => {
     console.log(`[DEBUG] Method: ${req.method} | URL: ${req.url} | Path: ${req.path}`);

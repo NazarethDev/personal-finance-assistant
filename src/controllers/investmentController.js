@@ -1,6 +1,7 @@
 import * as investmentService from "../services/investmentService.js";
 import { HttpStatusCode } from "axios";
 import { createInvestmentDTO, updateInvestmentDTO } from "../models/investmentsModels/investmentDTO.js";
+import { validateOperationMode } from "../utils/normalizeMode.js"
 
 export async function handleCreatetInvestment(req, res) {
     try {
@@ -24,6 +25,10 @@ export async function handleUpdateInvestment(req, res) {
 
         const parsedBody = updateInvestmentDTO(req.body);
 
+        if (parsedBody.mode) {
+            parsedBody.mode = validateOperationMode(parsedBody.mode);
+        }
+
         const updatedInvestment = await investmentService.modifyInvestment(id, parsedBody);
 
         return res.status(HttpStatusCode.Ok).json(updatedInvestment);
@@ -42,7 +47,7 @@ export async function handleUpdateInvestment(req, res) {
 export async function handleDeleteInvestment(req, res) {
     try {
         const { id } = req.params;
-        const { mode = 'SINGLE' } = req.query;
+        const mode = validateOperationMode(req.query.mode);
 
         await investmentService.removeInvestment(id, mode);
 

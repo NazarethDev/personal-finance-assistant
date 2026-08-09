@@ -16,9 +16,9 @@ const investmentSchema = new mongoose.Schema({
     },
 
     category: {
-        type: String,
-        required: true,
-        enum: Object.values(investmentsCategories)
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
+        required: true
     },
 
     frequency: {

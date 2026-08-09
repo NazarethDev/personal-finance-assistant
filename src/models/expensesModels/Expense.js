@@ -1,15 +1,15 @@
 import mongoose from "mongoose";
 import { expenseCategory } from "./expensesCategories.js";
-import { frequency, weeklyFrequency, monthlyFrequency } from "../frequencyEnum.js";
+import { frequency } from "../frequencyEnum.js";
 import { isoDateToBrazilianDate } from "../../utils/normalizeDate.js";
 
 const expenseSchema = new mongoose.Schema({
     name: { type: String, required: true },
     amount: { type: Number, required: true },
     category: {
-        type: String,
-        required: true,
-        enum: Object.values(expenseCategory)
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
+        required: true
     },
     frequency: {
         type: String,
@@ -53,7 +53,7 @@ expenseSchema.virtual('dueDateFormatted').get(function () {
 
     if (freq === frequency.YEARLY || freq === 'YEARLY') {
         const day = this.dueDate.getUTCDate();
-        const month = this.dueDate.getUTCMonth() + 1; 
+        const month = this.dueDate.getUTCMonth() + 1;
         const nomeMes = monthlyFrequency[month];
         return `Todo dia ${day} de ${nomeMes}`;
     }

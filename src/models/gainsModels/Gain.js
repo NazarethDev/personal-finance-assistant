@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { frequency, weeklyFrequency, monthlyFrequency } from "../frequencyEnum.js";
+import { frequency } from "../frequencyEnum.js";
 import { gainsCategories } from "./gainsCategories.js";
 import { isoDateToBrazilianDate } from "../../utils/normalizeDate.js";
 
@@ -7,9 +7,9 @@ const gainSchema = new mongoose.Schema({
     name: { type: String, required: true },
     amount: { type: Number, required: true },
     category: {
-        type: String,
-        required: true,
-        enum: Object.values(gainsCategories)
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
+        required: true
     },
     frequency: {
         type: String,

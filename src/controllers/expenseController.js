@@ -1,6 +1,7 @@
 import * as expenseService from "../services/expenseService.js";
 import { HttpStatusCode } from "axios";
 import { createExpenseDTO, updateExpenseDTO } from "../models/expensesModels/expenseDTO.js";
+import { validateOperationMode } from "../utils/normalizeMode.js";
 
 export async function handleCreateExpense(req, res) {
     try {
@@ -24,6 +25,10 @@ export async function handleUpdateExpense(req, res) {
 
         const parsedBody = updateExpenseDTO(req.body);
 
+        if (parsedBody.mode) {
+            parsedBody.mode = validateOperationMode(parsedBody.mode);
+        }
+
         const updatedExpense = await expenseService.modifyExpense(id, parsedBody);
 
         return res.status(HttpStatusCode.Ok).json(updatedExpense);
@@ -42,7 +47,7 @@ export async function handleUpdateExpense(req, res) {
 export async function handleDeleteExpense(req, res) {
     try {
         const { id } = req.params;
-        const { mode = 'SINGLE' } = req.query;
+        const mode = validateOperationMode(req.query.mode);
 
         await expenseService.removeExpense(id, mode);
 
