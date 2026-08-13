@@ -2,12 +2,15 @@ import express from "express";
 import cors from "cors";
 
 import { corsOptions } from "./config/corsOptions.js";
+import { authMiddleware } from "./config/authMiddleware.js";
 
 import gainsRouter from "./routes/gainsRoutes.js";
 import expensesRouter from "./routes/expensesRoutes.js";
 import investmentsRouter from "./routes/investmentsRoutes.js";
 import categoriesRouter from "../src/routes/categoriesRoutes.js";
 import analyticsRouter from "./routes/analyticsRoutes.js";
+
+import usersRouter from "./routes/usersRouter.js";
 import healthRouter from "./routes/healthRoutes.js";
 
 
@@ -17,11 +20,14 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use("/health", healthRouter);
-app.use("/gains", gainsRouter);
-app.use("/expenses", expensesRouter);
-app.use("/investments", investmentsRouter);
-app.use("/analytics", analyticsRouter);
-app.use("/categories", categoriesRouter);
+app.use("/user", usersRouter);
+
+
+app.use("/gains", authMiddleware, gainsRouter);
+app.use("/expenses", authMiddleware, expensesRouter);
+app.use("/investments", authMiddleware, investmentsRouter);
+app.use("/analytics", authMiddleware, analyticsRouter);
+app.use("/categories", authMiddleware, categoriesRouter);
 
 app.use((req, res, next) => {
     console.log(`[DEBUG] Method: ${req.method} | URL: ${req.url} | Path: ${req.path}`);

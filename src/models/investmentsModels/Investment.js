@@ -5,6 +5,12 @@ import { frequency, weeklyFrequency, monthlyFrequency } from "../frequencyEnum.j
 import { isoDateToBrazilianDate } from "../../utils/normalizeDate.js";
 
 const investmentSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+        index: true
+    },
     name: {
         type: String,
         required: true

@@ -1,4 +1,4 @@
-import * as gainService from "../services/gainService.js";
+import * as service from "../services/gainService.js";
 import { HttpStatusCode } from "axios";
 import { createGainDTO, updateGainDTO } from "../models/gainsModels/gainDTO.js";
 import { validateOperationMode } from "../utils/normalizeMode.js";
@@ -7,7 +7,7 @@ export async function handleCreateGain(req, res) {
     try {
         const gainData = createGainDTO(req.body);
 
-        const newGain = await gainService.create(gainData)
+        const newGain = await service.create(gainData)
 
         return res.status(HttpStatusCode.Created).json(newGain);
     } catch (error) {
@@ -29,7 +29,7 @@ export async function handleUpdateGain(req, res) {
             parsedBody.mode = validateOperationMode(parsedBody.mode);
         }
 
-        const updatedGain = await gainService.modifyGain(id, parsedBody);
+        const updatedGain = await service.modifyGain(id, parsedBody);
 
         return res.status(HttpStatusCode.Ok).json(updatedGain);
 
@@ -49,7 +49,7 @@ export async function handleDeleteGain(req, res) {
         const { id } = req.params;
         const mode = validateOperationMode(req.query.mode);
         
-        await gainService.removeGain(id, mode);
+        await service.removeGain(id, mode);
 
         return res.status(HttpStatusCode.Ok).json({
             message: `Receita(s) removida(s) com sucesso. (Modo: ${mode})`
@@ -70,7 +70,7 @@ export async function handleGetGainsByMonth(req, res) {
     try {
         const { year, month } = req.query;
 
-        const data = await gainService.getByMonth(year, month);
+        const data = await service.getByMonth(year, month);
 
         return res.status(HttpStatusCode.Ok).json(data);
     } catch (error) {
@@ -90,7 +90,7 @@ export async function handleGetGainsBySeries(req, res) {
     try {
         const { seriesId } = req.params;
 
-        const data = await gainService.getBySeries(seriesId);
+        const data = await service.getBySeries(seriesId);
 
         return res.status(HttpStatusCode.Ok).json(data);
     } catch (error) {
@@ -110,7 +110,7 @@ export async function handleGetGainsByCategoryAndMonth(req, res) {
     try {
         const { category, year, month } = req.query;
 
-        const data = await gainService.getByCategoryAndMonth(category, year, month);
+        const data = await service.getByCategoryAndMonth(category, year, month);
 
         return res.status(HttpStatusCode.Ok).json(data);
     } catch (error) {

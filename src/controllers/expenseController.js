@@ -1,13 +1,15 @@
-import * as expenseService from "../services/expenseService.js";
+import * as service from "../services/expenseService.js";
 import { HttpStatusCode } from "axios";
 import { createExpenseDTO, updateExpenseDTO } from "../models/expensesModels/expenseDTO.js";
 import { validateOperationMode } from "../utils/normalizeMode.js";
 
 export async function handleCreateExpense(req, res) {
     try {
+        const userId = req.userId;
+
         const expenseData = createExpenseDTO(req.body);
 
-        const newExpense = await expenseService.create(expenseData);
+        const newExpense = await service.create(userId, expenseData);
 
         return res.status(HttpStatusCode.Created).json(newExpense);
     } catch (error) {
@@ -21,23 +23,28 @@ export async function handleCreateExpense(req, res) {
 
 export async function handleUpdateExpense(req, res) {
     try {
+        const userId = req.userId;
         const { id } = req.params;
 
-        const parsedBody = updateExpenseDTO(req.body);
+        const parsedDTO = updateExpenseDTO(req.body);
 
-        if (parsedBody.mode) {
-            parsedBody.mode = validateOperationMode(parsedBody.mode);
-        }
+        const mode = parsedDTO.mode ? validateOperationMode(parsedDTO.mode) : undefined;
+        const updateData = { ...parsedDTO };
+        delete updateData.mode;
 
-        const updatedExpense = await expenseService.modifyExpense(id, parsedBody);
+        const updatedExpense = await expenseService.modifyExpense(userId, id, { updateData, mode });
 
         return res.status(HttpStatusCode.Ok).json(updatedExpense);
 
     } catch (error) {
         if (error.message === "EXPENSE_NOT_FOUND") {
-            return res.status(HttpStatusCode.NotFound).json({ message: 'Expense not found' });
+            return res.status(HttpStatusCode.NotFound).json({ message: "Despesa não encontrada." });
         }
-        return res.status(HttpStatusCode.BadRequest).json({
+        if (error.message === "INVALID_CATEGORY") {
+            return res.status(HttpStatusCode.BadRequest).json({ message: "Categoria informada é inválida." });
+        }
+        console.error("Erro ao atualizar despesa:", error);
+        return res.status(HttpStatusCode.InternalServerError).json({
             message: "Erro interno ao atualizar despesa.",
             error: error.message
         });
@@ -46,10 +53,11 @@ export async function handleUpdateExpense(req, res) {
 
 export async function handleDeleteExpense(req, res) {
     try {
+        const userId = req.userId;
         const { id } = req.params;
         const mode = validateOperationMode(req.query.mode);
 
-        await expenseService.removeExpense(id, mode);
+        await service.removeExpense(userId, id, mode);
 
         return res.status(HttpStatusCode.Ok).json({
             message: `Despesa(s) removida(s) com sucesso. (Modo: ${mode})`
@@ -68,9 +76,10 @@ export async function handleDeleteExpense(req, res) {
 
 export async function handleGetExpensesByMonth(req, res) {
     try {
-        const { year, month } = req.query; // ou req.params
+        const userId = req.userId;
+        const { year, month } = req.query;
 
-        const data = await expenseService.getByMonth(year, month);
+        const data = await service.getByMonth(userId, year, month);
 
         return res.status(HttpStatusCode.Ok).json(data);
     } catch (error) {
@@ -88,9 +97,11 @@ export async function handleGetExpensesByMonth(req, res) {
 
 export async function handleGetExpensesBySeries(req, res) {
     try {
+        const userId = req.userId;
+
         const { seriesId } = req.params;
 
-        const data = await expenseService.getBySeries(seriesId);
+        const data = await service.getBySeries(userId, seriesId);
 
         return res.status(HttpStatusCode.Ok).json(data);
     } catch (error) {
@@ -108,9 +119,10 @@ export async function handleGetExpensesBySeries(req, res) {
 
 export async function handleGetExpensesByCategoryAndMonth(req, res) {
     try {
+        const userId = req.userId;
         const { category, year, month } = req.query;
 
-        const data = await expenseService.getByCategoryAndMonth(category, year, month);
+        const data = await service.getByCategoryAndMonth(userId, category, year, month);
 
         return res.status(HttpStatusCode.Ok).json(data);
     } catch (error) {
@@ -120,13 +132,14 @@ export async function handleGetExpensesByCategoryAndMonth(req, res) {
             });
         }
 
-        if (error.message === "INVALID_CATEGORY") {
+        if (error.message === "CATEGORY_REQUIRED" || error.message === "INVALID_CATEGORY") {
             return res.status(HttpStatusCode.BadRequest).json({
-                message: "Categoria inválida.",
+                message: "Categoria não informada ou inválida.",
                 error: error.message
             });
         }
 
+        console.error("Erro ao buscar despesas por categoria no mês:", error);
         return res.status(HttpStatusCode.InternalServerError).json({
             message: "Erro interno ao buscar despesas por categoria no mês.",
             error: error.message

@@ -4,6 +4,12 @@ import { gainsCategories } from "./gainsCategories.js";
 import { isoDateToBrazilianDate } from "../../utils/normalizeDate.js";
 
 const gainSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+        index: true
+    },
     name: { type: String, required: true },
     amount: { type: Number, required: true },
     category: {

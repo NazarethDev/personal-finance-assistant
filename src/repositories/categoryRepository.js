@@ -30,13 +30,19 @@ export async function findByNameAndType(name, type) {
     return await Category.findOne({ name, type });
 }
 
-export async function findByIdOrNameAndType(identifier, type) {
+export async function findByIdOrNameAndType(identifier, type, userId) {
     const isObjectId = mongoose.Types.ObjectId.isValid(identifier);
 
+    const query = {
+        user: userId,
+        type: type    
+    };
+
     if (isObjectId) {
-        return await Category.findOne({ _id: identifier, type });
+        query._id = identifier;
+    } else {
+        query.name = { $regex: new RegExp(`^${identifier}$`, "i") };
     }
 
-    const normalizedName = String(identifier).trim().toLowerCase();
-    return await Category.findOne({ name: normalizedName, type });
+    return await Category.findOne(query);
 }

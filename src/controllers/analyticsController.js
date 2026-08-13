@@ -1,5 +1,5 @@
 import { HttpStatusCode } from "axios";
-import { getDashboardAnalytics, getCalendarData } from "../services/analyticsService.js";
+import *as service from "../services/analyticsService.js";
 import { parseYearMonthQuery, getMonthDateRange, getDashboardDateRanges } from "../utils/dashboardDateValidator.js";
 
 // GET /api/analytics/dashboard?year=2026&month=8
@@ -10,7 +10,7 @@ export const getDashboardController = async (req, res) => {
             req.query.month
         );
 
-        const data = await getDashboardAnalytics(currentStart, currentEnd, previousStart, previousEnd);
+        const data = await service.getDashboardAnalytics(currentStart, currentEnd, previousStart, previousEnd);
         return res.status(HttpStatusCode.Ok).json(data);
     } catch (error) {
         return res.status(HttpStatusCode.InternalServerError).json({ error: "Erro ao gerar dashboard." });
@@ -23,7 +23,7 @@ export const getCalendarController = async (req, res) => {
         const { year, month } = parseYearMonthQuery(req.query.year, req.query.month);
         const { startDate, endDate } = getMonthDateRange(year, month);
 
-        const data = await getCalendarData(startDate, endDate);
+        const data = await service.getCalendarData(startDate, endDate);
         return res.status(HttpStatusCode.Ok).json(data);
     } catch (error) {
         return res.status(HttpStatusCode.InternalServerError).json({ error: "Erro ao gerar dados do calendário." });

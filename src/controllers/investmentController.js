@@ -1,4 +1,4 @@
-import * as investmentService from "../services/investmentService.js";
+import * as service from "../services/investmentService.js";
 import { HttpStatusCode } from "axios";
 import { createInvestmentDTO, updateInvestmentDTO } from "../models/investmentsModels/investmentDTO.js";
 import { validateOperationMode } from "../utils/normalizeMode.js"
@@ -7,7 +7,7 @@ export async function handleCreatetInvestment(req, res) {
     try {
         const investmentData = createInvestmentDTO(req.body);
 
-        const newInvestment = await investmentService.create(investmentData);
+        const newInvestment = await service.create(investmentData);
 
         return res.status(HttpStatusCode.Created).json(newInvestment);
     } catch (error) {
@@ -29,7 +29,7 @@ export async function handleUpdateInvestment(req, res) {
             parsedBody.mode = validateOperationMode(parsedBody.mode);
         }
 
-        const updatedInvestment = await investmentService.modifyInvestment(id, parsedBody);
+        const updatedInvestment = await service.modifyInvestment(id, parsedBody);
 
         return res.status(HttpStatusCode.Ok).json(updatedInvestment);
 
@@ -49,7 +49,7 @@ export async function handleDeleteInvestment(req, res) {
         const { id } = req.params;
         const mode = validateOperationMode(req.query.mode);
 
-        await investmentService.removeInvestment(id, mode);
+        await service.removeInvestment(id, mode);
 
         return res.status(HttpStatusCode.Ok).json({
             message: `investimento(s) removido(s) com sucesso. (Modo: ${mode})`
@@ -70,7 +70,7 @@ export async function handleGetInvestmentsByMonth(req, res) {
     try {
         const { year, month } = req.query;
 
-        const data = await investmentService.getByMonth(year, month);
+        const data = await service.getByMonth(year, month);
 
         return res.status(HttpStatusCode.Ok).json(data);
     } catch (error) {
@@ -90,7 +90,7 @@ export async function handleGetInvestmentsBySeries(req, res) {
     try {
         const { seriesId } = req.params;
 
-        const data = await investmentService.getBySeries(seriesId);
+        const data = await service.getBySeries(seriesId);
 
         return res.status(HttpStatusCode.Ok).json(data);
     } catch (error) {
@@ -110,7 +110,7 @@ export async function handleGetInvestmentsByCategoryAndMonth(req, res) {
     try {
         const { category, year, month } = req.query;
 
-        const data = await investmentService.getByCategoryAndMonth(category, year, month);
+        const data = await service.getByCategoryAndMonth(category, year, month);
 
         return res.status(HttpStatusCode.Ok).json(data);
     } catch (error) {

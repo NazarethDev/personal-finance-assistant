@@ -1,9 +1,9 @@
 import { HttpStatusCode } from "axios";
-import * as categoryService from "../services/categoryService.js";
+import * as service from "../services/categoryService.js";
 
 export async function create(req, res) {
     try {
-        const category = await categoryService.createCategory(req.body);
+        const category = await service.createCategory(req.body);
         return res.status(HttpStatusCode.Created).json(category);
     } catch (error) {
         if (error.message === "NAME_AND_TYPE_REQUIRED") {
@@ -19,7 +19,6 @@ export async function create(req, res) {
             return res.status(HttpStatusCode.Conflict).json({ error: "Já existe uma categoria com este nome e tipo." });
         }
 
-        // Log detalhado APENAS para erros não previstos (HTTP 500)
         console.error("Error in categoryController.create:", error);
         return res.status(HttpStatusCode.InternalServerError).json({ error: "Erro interno ao criar categoria." });
     }
@@ -28,7 +27,7 @@ export async function create(req, res) {
 export async function getAll(req, res) {
     try {
         const { type } = req.query;
-        const categories = await categoryService.getCategories(type);
+        const categories = await service.getCategories(type);
         return res.status(HttpStatusCode.Ok).json(categories);
     } catch (error) {
         console.error("Error in categoryController.getAll:", error);
@@ -44,7 +43,7 @@ export async function getAll(req, res) {
 export async function getById(req, res) {
     try {
         const { id } = req.params;
-        const category = await categoryService.getCategoryById(id);
+        const category = await service.getCategoryById(id);
         return res.status(HttpStatusCode.Ok).json(category);
     } catch (error) {
         console.error("Error in categoryController.getById:", error);
@@ -60,7 +59,7 @@ export async function getById(req, res) {
 export async function update(req, res) {
     try {
         const { id } = req.params;
-        const updatedCategory = await categoryService.updateCategory(id, req.body);
+        const updatedCategory = await service.updateCategory(id, req.body);
         return res.status(HttpStatusCode.Ok).json(updatedCategory);
     } catch (error) {
         console.error("Error in categoryController.update:", error);
@@ -82,7 +81,7 @@ export async function update(req, res) {
 export async function remove(req, res) {
     try {
         const { id } = req.params;
-        await categoryService.deleteCategory(id);
+        await service.deleteCategory(id);
         return res.status(HttpStatusCode.NoContent).send();
     } catch (error) {
         console.error("Error in categoryController.remove:", error);
