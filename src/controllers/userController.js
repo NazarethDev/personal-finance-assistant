@@ -4,7 +4,7 @@ import * as userService from "../services/userService.js";
 
 export async function register(req, res) {
     try {
-        const user = await userService.registerUser(req.body);
+        const user = await userService.createUser(req.body);
         return res.status(HttpStatusCode.Created).json(user);
     } catch (error) {
         return res.status(HttpStatusCode.BadRequest).json({ message: error.message });

@@ -1,7 +1,7 @@
 import { User } from "../models/user/User.js"
 
 export async function findByEmail(email) {
-    return await User.findOne({ email });
+    return await User.findOne({ email }).select('+password');
 }
 
 export async function findById(id) {
