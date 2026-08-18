@@ -1,7 +1,12 @@
 import { Gain } from "../models/gainsModels/Gain.js";
+import { Types } from "mongoose";
 
 export const fetchAllFinancialDataInSingleQuery = async (startDate, endDate) => {
+
+    const userObjectId = typeof userId === 'string' ? new Types.ObjectId(userId) : userId;
+    
     const dateMatchFilter = {
+        userId: userObjectId,
         dueDate: {
             $gte: new Date(startDate),
             $lte: new Date(endDate)

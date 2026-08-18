@@ -1,7 +1,7 @@
 import { Gain } from "../models/gainsModels/Gain.js";
 
-export async function checkExists(id) {
-    return await Gain.exists({ _id: id });
+export async function checkExists(userId, id) {
+    return await Gain.exists({ _id: id, user: userId });
 }
 
 export async function createSingle(data) {
@@ -12,52 +12,54 @@ export async function createMany(gainsArray) {
     return await Gain.insertMany(gainsArray);
 }
 
-export async function update(id, updateData) {
-    return await Gain.findByIdAndUpdate(id, updateData, { returnDocument: 'after' });
+export async function update(userId, id, updateData) {
+    return await Gain.findOneAndUpdate({ _id: id, user: userId }, updateData, { returnDocument: 'after' });
 }
 
-export async function updateAllInSeries(seriesId, updateData) {
-    return await Gain.updateMany({ seriesId }, updateData);
+export async function updateAllInSeries(userId, seriesId, updateData) {
+    return await Gain.updateMany({ seriesId, user: userId }, updateData);
 }
 
-export async function updateFutureInSeries(seriesId, fromDate, updateData) {
+export async function updateFutureInSeries(userId, seriesId, fromDate, updateData) {
     return await Gain.updateMany(
-        { seriesId, dueDate: { $gte: fromDate } },
+        { seriesId, user: userId, dueDate: { $gte: fromDate } },
         updateData
     );
 }
 
-export async function updatePastInSeries(seriesId, toDate, updateData) {
+export async function updatePastInSeries(userId, seriesId, toDate, updateData) {
     return await Gain.updateMany(
-        { seriesId, dueDate: { $lte: toDate } },
+        { seriesId, user: userId, dueDate: { $lte: toDate } },
         updateData
     );
 }
 
-export async function deleteById(id) {
-    return await Gain.findByIdAndDelete(id);
+export async function deleteById(userId, id) {
+    return await Gain.findOneAndDelete({ _id: id, user: userId });
 }
 
-export async function deleteAllInSeries(seriesId) {
-    return await Gain.deleteMany({ seriesId });
+export async function deleteAllInSeries(userId, seriesId) {
+    return await Gain.deleteMany({ seriesId, user: userId });
 }
 
-export async function deleteFutureInSeries(seriesId, fromDate) {
+export async function deleteFutureInSeries(userId, seriesId, fromDate) {
     return await Gain.deleteMany({
         seriesId,
+        user: userId,
         dueDate: { $gte: fromDate }
     });
 }
 
-export async function deletePastInSeries(seriesId, toDate) {
+export async function deletePastInSeries(userId, seriesId, toDate) {
     return await Gain.deleteMany({
         seriesId,
+        user: userId,
         dueDate: { $lte: toDate }
     });
 }
 
-export async function findBySeries(seriesId, fromDate = null) {
-    const query = { seriesId };
+export async function findBySeries(userId, seriesId, fromDate = null) {
+    const query = { seriesId, user: userId };
     if (fromDate) {
         query.dueDate = { $gte: fromDate };
     }
@@ -65,11 +67,12 @@ export async function findBySeries(seriesId, fromDate = null) {
     return await Gain.find(query).populate("category").sort({ dueDate: 1 });
 }
 
-export async function findByMonth(year, month) {
+export async function findByMonth(userId, year, month) {
     const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0));
     const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
     return await Gain.find({
+        user: userId,
         dueDate: {
             $gte: startDate,
             $lte: endDate
@@ -77,11 +80,12 @@ export async function findByMonth(year, month) {
     }).populate("category").sort({ dueDate: 1 });
 }
 
-export async function findByCategoryAndMonth(categoryId, year, month) {
+export async function findByCategoryAndMonth(userId, categoryId, year, month) {
     const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0));
     const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
     return await Gain.find({
+        user: userId,
         category: categoryId,
         dueDate: {
             $gte: startDate,
@@ -90,6 +94,6 @@ export async function findByCategoryAndMonth(categoryId, year, month) {
     }).populate("category").sort({ dueDate: 1 });
 }
 
-export async function findById(id) {
-    return await Gain.findById(id).populate("category");
+export async function findById(userId, id) {
+    return await Gain.findOne({ _id: id, user: userId }).populate("category");
 }

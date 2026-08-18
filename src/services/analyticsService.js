@@ -8,11 +8,11 @@ const getCategoryName = (doc) => {
     return 'Sem Categoria';
 };
 
-export const getDashboardAnalytics = async (currentStart, currentEnd, previousStart, previousEnd) => {
+export const getDashboardAnalytics = async (userId, currentStart, currentEnd, previousStart, previousEnd) => {
     // Busca dados do mês atual e anterior
     const [currentData, previousData] = await Promise.all([
-        fetchAllFinancialDataInSingleQuery(currentStart, currentEnd),
-        fetchAllFinancialDataInSingleQuery(previousStart, previousEnd)
+        fetchAllFinancialDataInSingleQuery(userId, currentStart, currentEnd),
+        fetchAllFinancialDataInSingleQuery(userId, previousStart, previousEnd)
     ]);
 
     // 1. Totais do Mês Atual
@@ -133,9 +133,9 @@ const calcDelta = (prev, curr) => prev === 0 ? (curr > 0 ? 100 : 0) : Number((((
 const calcPct = (amount, total) => total > 0 ? Number(((amount / total) * 100).toFixed(2)) : 0;
 
 
-export const getCalendarData = async (startDateStr, endDateStr) => {
+export const getCalendarData = async (userId, startDateStr, endDateStr) => {
     // 1. Busca os registros do mês
-    const { gains, expenses, investments } = await fetchAllFinancialDataInSingleQuery(startDateStr, endDateStr);
+    const { gains, expenses, investments } = await fetchAllFinancialDataInSingleQuery(userId, startDateStr, endDateStr);
 
     const start = new Date(startDateStr);
     const end = new Date(endDateStr);

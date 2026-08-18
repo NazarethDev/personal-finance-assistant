@@ -3,7 +3,8 @@ import * as service from "../services/categoryService.js";
 
 export async function create(req, res) {
     try {
-        const category = await service.createCategory(req.body);
+        const userId = req.userId;
+        const category = await service.createCategory({ userId, ...req.body });
         return res.status(HttpStatusCode.Created).json(category);
     } catch (error) {
         if (error.message === "NAME_AND_TYPE_REQUIRED") {
@@ -26,8 +27,9 @@ export async function create(req, res) {
 
 export async function getAll(req, res) {
     try {
+        const userId = req.userId;
         const { type } = req.query;
-        const categories = await service.getCategories(type);
+        const categories = await service.getCategories(userId, type);
         return res.status(HttpStatusCode.Ok).json(categories);
     } catch (error) {
         console.error("Error in categoryController.getAll:", error);
@@ -42,8 +44,9 @@ export async function getAll(req, res) {
 
 export async function getById(req, res) {
     try {
+        const userId = req.userId;
         const { id } = req.params;
-        const category = await service.getCategoryById(id);
+        const category = await service.getCategoryById(userId, id);
         return res.status(HttpStatusCode.Ok).json(category);
     } catch (error) {
         console.error("Error in categoryController.getById:", error);
@@ -58,8 +61,9 @@ export async function getById(req, res) {
 
 export async function update(req, res) {
     try {
+        const userId = req.userId;
         const { id } = req.params;
-        const updatedCategory = await service.updateCategory(id, req.body);
+        const updatedCategory = await service.updateCategory({ userId, id, ...req.body });
         return res.status(HttpStatusCode.Ok).json(updatedCategory);
     } catch (error) {
         console.error("Error in categoryController.update:", error);
@@ -80,8 +84,9 @@ export async function update(req, res) {
 
 export async function remove(req, res) {
     try {
+        const userId = req.userId;
         const { id } = req.params;
-        await service.deleteCategory(id);
+        await service.deleteCategory(userId, id);
         return res.status(HttpStatusCode.NoContent).send();
     } catch (error) {
         console.error("Error in categoryController.remove:", error);

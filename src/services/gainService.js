@@ -9,12 +9,12 @@ import { generateRecurrentSeries } from "../utils/generateRecurrentSeries.js";
 
 import { frequency } from "../models/frequencyEnum.js"
 
-export async function create(data) {
+export async function create(userId, data) {
     if (!data.category) {
         throw new Error("CATEGORY_REQUIRED");
     }
 
-    const categoryDoc = await categoryRepo.findByIdOrNameAndType(data.category, "gain");
+    const categoryDoc = await categoryRepo.findByIdOrNameAndType(data.category, "gain", userId);
 
     if (!categoryDoc) {
         throw new Error("INVALID_CATEGORY");
@@ -31,6 +31,7 @@ export async function create(data) {
     if (!isRecurrent) {
         const createdGain = await repo.createSingle({
             ...data,
+            user: userId,
             category: categoryId,
             seriesId: null
         });
@@ -54,6 +55,7 @@ export async function create(data) {
 
     const gainsToCreate = generateRecurrentSeries({
         baseData: {
+            user: userId,
             name: data.name,
             amount: data.amount,
             category: categoryId,
@@ -67,25 +69,25 @@ export async function create(data) {
 
     await repo.createMany(gainsToCreate);
 
-    return await repo.findBySeries(seriesId);
+    return await repo.findBySeries(userId, seriesId);
 }
 
-export async function getByMonth(year, month) {
+export async function getByMonth(userId, year, month) {
     const { year: finalYear, month: finalMonth } = normalizeDateToCurrentDate(year, month);
 
     if (isNaN(finalYear) || isNaN(finalMonth) || finalMonth < 1 || finalMonth > 12) {
         throw new Error("INVALID_DATE_PARAMETERS");
     }
 
-    return await repo.findByMonth(finalYear, finalMonth);
+    return await repo.findByMonth(userId, finalYear, finalMonth);
 }
 
-export async function getBySeries(seriesId) {
+export async function getBySeries(userId, seriesId) {
     if (!seriesId) {
         throw new Error("SERIES_ID_REQUIRED");
     }
 
-    const data = await repo.findBySeries(seriesId);
+    const data = await repo.findBySeries(userId, seriesId);
 
     if (!data || data.length === 0) {
         throw new Error("SERIES_NOT_FOUND");
@@ -94,7 +96,7 @@ export async function getBySeries(seriesId) {
     return data;
 }
 
-export async function getByCategoryAndMonth(categoryId, year, month) {
+export async function getByCategoryAndMonth(userId, categoryId, year, month) {
     const { year: finalYear, month: finalMonth } = normalizeDateToCurrentDate(year, month);
 
     if (isNaN(finalYear) || isNaN(finalMonth) || finalMonth < 1 || finalMonth > 12) {
@@ -105,17 +107,17 @@ export async function getByCategoryAndMonth(categoryId, year, month) {
         throw new Error("CATEGORY_REQUIRED");
     }
 
-    const categoryDoc = await categoryRepo.findByIdOrNameAndType(categoryId, "gain");
+    const categoryDoc = await categoryRepo.findByIdOrNameAndType(categoryId, "gain", userId);
 
     if (!categoryDoc) {
         throw new Error("INVALID_CATEGORY");
     }
 
-    return await repo.findByCategoryAndMonth(categoryDoc._id, finalYear, finalMonth);
+    return await repo.findByCategoryAndMonth(userId, categoryDoc._id, finalYear, finalMonth);
 }
 
-export async function removeGain(id, mode) {
-    const target = await repo.findById(id);
+export async function removeGain(userId, id, mode) {
+    const target = await repo.findById(userId, id);
     const normalizedMode = normalizeMode(mode);
 
     if (!target) {
@@ -123,33 +125,36 @@ export async function removeGain(id, mode) {
     }
 
     if (!target.seriesId || normalizedMode === 'SINGLE') {
-        return await repo.deleteById(id);
+        return await repo.deleteById(userId, id);
     }
 
     switch (normalizedMode) {
         case 'ALL':
-            return await repo.deleteAllInSeries(target.seriesId);
+            return await repo.deleteAllInSeries(userId, target.seriesId);
 
         case 'FUTURE':
-            return await repo.deleteFutureInSeries(target.seriesId, target.dueDate);
+            return await repo.deleteFutureInSeries(userId, target.seriesId, target.dueDate);
 
         case 'PAST':
-            return await repo.deletePastInSeries(target.seriesId, target.dueDate);
+            return await repo.deletePastInSeries(userId, target.seriesId, target.dueDate);
 
         default:
-            return await repo.deleteById(id);
+            return await repo.deleteById(userId, id);
     }
 }
 
-export async function modifyGain(id, { updateData, mode }) {
-    const target = await repo.findById(id);
+export async function modifyGain(userId, id, payload) {
+
+    const { mode, ...updateData } = payload;
+
+    const target = await repo.findById(userId, id);
 
     if (!target) {
         throw new Error("GAIN_NOT_FOUND");
     }
 
     if (updateData.category) {
-        const categoryDoc = await categoryRepo.findByIdOrNameAndType(updateData.category, "gain");
+        const categoryDoc = await categoryRepo.findByIdOrNameAndType(updateData.category, "gain", userId);
         if (!categoryDoc) {
             throw new Error("INVALID_CATEGORY");
         }
@@ -164,6 +169,7 @@ export async function modifyGain(id, { updateData, mode }) {
     const targetCategoryId = target.category._id ? target.category._id : target.category;
 
     const mergedData = {
+        user: userId,
         name: updateData.name ?? target.name,
         amount: updateData.amount ?? target.amount,
         category: updateData.category ?? targetCategoryId,
@@ -177,7 +183,7 @@ export async function modifyGain(id, { updateData, mode }) {
 
     if (isTargetOnce && !isNewOnce) {
         const newSeriesId = new mongoose.Types.ObjectId();
-        await repo.deleteById(target._id);
+        await repo.deleteById(userId, target._id);
 
         const gainsToCreate = generateRecurrentSeries({
             baseData: mergedData,
@@ -189,18 +195,19 @@ export async function modifyGain(id, { updateData, mode }) {
         });
 
         await repo.createMany(gainsToCreate);
-        return await repo.findBySeries(newSeriesId);
+        return await repo.findBySeries(userId, newSeriesId);
     }
     if (frequencyChanged && target.seriesId) {
         switch (normalizedMode) {
             case 'ALL': {
-                const currentSeries = await repo.findBySeries(target.seriesId);
+                const currentSeries = await repo.findBySeries(userId, target.seriesId);
+
                 const firstItem = currentSeries[0] || target;
 
                 const seriesStartDate = updateData.startDate ? new Date(updateData.startDate) : firstItem.startDate;
                 const seriesDueDate = updateData.dueDate ? new Date(updateData.dueDate) : firstItem.dueDate;
 
-                await repo.deleteAllInSeries(target.seriesId);
+                await repo.deleteAllInSeries(userId, target.seriesId);
 
                 const items = generateRecurrentSeries({
                     baseData: mergedData,
@@ -212,11 +219,11 @@ export async function modifyGain(id, { updateData, mode }) {
                 });
 
                 await repo.createMany(items);
-                return await repo.findBySeries(target.seriesId);
+                return await repo.findBySeries(userId, target.seriesId);
             }
 
             case 'FUTURE': {
-                await repo.deleteFutureInSeries(target.seriesId, target.dueDate);
+                await repo.deleteFutureInSeries(userId, target.seriesId, target.dueDate);
 
                 const items = generateRecurrentSeries({
                     baseData: mergedData,
@@ -227,11 +234,11 @@ export async function modifyGain(id, { updateData, mode }) {
                     newFrequency: mergedData.frequency
                 });
                 await repo.createMany(items);
-                return await repo.findBySeries(target.seriesId, target.dueDate);
+                return await repo.findBySeries(userId, target.seriesId, target.dueDate);
             }
 
             case 'PAST': {
-                await repo.deletePastInSeries(target.seriesId, target.dueDate);
+                await repo.deletePastInSeries(userId, target.seriesId, target.dueDate);
 
                 const items = generateRecurrentSeries({
                     baseData: mergedData,
@@ -242,12 +249,12 @@ export async function modifyGain(id, { updateData, mode }) {
                     newFrequency: mergedData.frequency
                 });
                 await repo.createMany(items);
-                return await repo.findBySeries(target.seriesId);
+                return await repo.findBySeries(userId, target.seriesId);
             }
 
             case 'SINGLE':
             default: {
-                const updated = await repo.update(id, {
+                const updated = await repo.update(userId, id, {
                     ...updateData,
                     seriesId: isNewOnce ? null : new mongoose.Types.ObjectId()
                 });
@@ -256,12 +263,12 @@ export async function modifyGain(id, { updateData, mode }) {
         }
     }
     if (!target.seriesId || normalizedMode === 'SINGLE') {
-        const updated = await repo.update(id, updateData);
+        const updated = await repo.update(userId, id, updateData);
         return await updated?.populate("category");
     }
     switch (normalizedMode) {
         case 'ALL': {
-            const currentSeries = await repo.findBySeries(target.seriesId);
+            const currentSeries = await repo.findBySeries(userId, target.seriesId);
             const firstItem = currentSeries[0] || target;
             const lastItem = currentSeries[currentSeries.length - 1] || target;
 
@@ -271,7 +278,7 @@ export async function modifyGain(id, { updateData, mode }) {
                 ? (updateData.finishDate ? new Date(updateData.finishDate) : null)
                 : (lastItem.finishDate ? new Date(lastItem.finishDate) : null);
 
-            await repo.deleteAllInSeries(target.seriesId);
+            await repo.deleteAllInSeries(userId, target.seriesId);
 
             const items = generateRecurrentSeries({
                 baseData: {
@@ -286,19 +293,19 @@ export async function modifyGain(id, { updateData, mode }) {
             });
 
             await repo.createMany(items);
-            return await repo.findBySeries(target.seriesId);
+            return await repo.findBySeries(userId, target.seriesId);
         }
 
         case 'FUTURE':
-            await repo.updateFutureInSeries(target.seriesId, target.dueDate, updateData);
-            return await repo.findBySeries(target.seriesId, target.dueDate);
+            await repo.updateFutureInSeries(userId, target.seriesId, target.dueDate, updateData);
+            return await repo.findBySeries(userId, target.seriesId, target.dueDate);
 
         case 'PAST':
-            await repo.updatePastInSeries(target.seriesId, target.dueDate, updateData);
-            return await repo.findBySeries(target.seriesId);
+            await repo.updatePastInSeries(userId, target.seriesId, target.dueDate, updateData);
+            return await repo.findBySeries(userId, target.seriesId);
 
         default: {
-            const updated = await repo.update(id, updateData);
+            const updated = await repo.update(userId, id, updateData);
             return await updated?.populate("category");
         }
     }

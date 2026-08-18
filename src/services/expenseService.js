@@ -143,7 +143,10 @@ export async function removeExpense(userId, id, mode) {
     }
 }
 
-export async function modifyExpense(userId, id, { updateData, mode }) {
+export async function modifyExpense(userId, id, payload) {
+
+    const { mode, ...updateData } = payload;
+
     const target = await repo.findById(userId, id);
 
     if (!target) {

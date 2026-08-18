@@ -32,7 +32,7 @@ export async function handleUpdateExpense(req, res) {
         const updateData = { ...parsedDTO };
         delete updateData.mode;
 
-        const updatedExpense = await expenseService.modifyExpense(userId, id, { updateData, mode });
+        const updatedExpense = await service.modifyExpense(userId, id, req.body);
 
         return res.status(HttpStatusCode.Ok).json(updatedExpense);
 
