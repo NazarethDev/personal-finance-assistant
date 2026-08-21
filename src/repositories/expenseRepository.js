@@ -77,7 +77,7 @@ export async function findByMonth(userId, year, month) {
             $gte: startDate,
             $lte: endDate
         }
-    }).populate("category").sort({ dueDate: 1 });
+    }).populate("category").sort({ dueDate: 1 }).lean();
 }
 
 export async function findByCategoryAndMonth(userId, categoryId, year, month) {
@@ -96,4 +96,17 @@ export async function findByCategoryAndMonth(userId, categoryId, year, month) {
 
 export async function findById(userId, id) {
     return await Expense.findOne({ _id: id, user: userId }).populate("category");
+}
+
+export async function findInCurrency(userId, currency, year, month) {
+    const startDate = new Date(year, month - 1, 1, 0, 0, 0, 0);
+    const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+    return await Expense.find({
+        user: userId,
+        currency: currency,
+        dueDate: {
+            $gte: startDate,
+            $lte: endDate
+        }
+    }).populate("category").sort({ dueDate: 1 }).lean();
 }

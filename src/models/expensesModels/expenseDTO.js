@@ -1,19 +1,23 @@
 import { frequency } from "../frequencyEnum.js";
 import { normalizeDate } from "../../utils/normalizeDate.js";
+import { normalizeCurrency } from "../../utils/normalizeCurrency.js";
 
 export function createExpenseDTO({
     name,
+    currency,
     amount,
     category,
     frequency,
     dueDate,
     startDate,
     finishDate,
-    seriesId
+    seriesId,
+    preferredCurrency
 }) {
     const normalizedDueDate = normalizeDate(dueDate || startDate);
     const normalizedStartDate = normalizeDate(startDate || dueDate);
     const normalizedFinishDate = finishDate ? normalizeDate(finishDate) : null;
+    const normalizedCurrency = normalizeCurrency(currency, preferredCurrency);
 
     const isShortExpense = !frequency || frequency === frequency.ONCE || frequency === "ONCE";
     const normalizedFrequency = isShortExpense
@@ -22,6 +26,7 @@ export function createExpenseDTO({
 
     return {
         name: String(name),
+        currency: normalizedCurrency,
         amount: Number(amount),
         category: category,
         frequency: normalizedFrequency,
@@ -34,9 +39,11 @@ export function createExpenseDTO({
 
 export function updateExpenseDTO(body) {
     const updateData = {};
+    const preferredCurrency = body.preferredCurrency;
 
     if (body.name !== undefined) updateData.name = String(body.name);
     if (body.amount !== undefined) updateData.amount = Number(body.amount);
+    if (body.currency !== undefined) updateData.currency = normalizeCurrency(body.currency, preferredCurrency);
     if (body.category !== undefined) updateData.category = body.category;
     if (body.seriesId !== undefined) updateData.seriesId = body.seriesId || null;
 

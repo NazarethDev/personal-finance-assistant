@@ -7,8 +7,10 @@ export async function handleCreateExpense(req, res) {
     try {
         const userId = req.userId;
 
-        const expenseData = createExpenseDTO(req.body);
-
+        const expenseData = createExpenseDTO({
+            ...req.body,
+            preferredCurrency: req.user?.preferredCurrency
+        });
         const newExpense = await service.create(userId, expenseData);
 
         return res.status(HttpStatusCode.Created).json(newExpense);
@@ -25,14 +27,19 @@ export async function handleUpdateExpense(req, res) {
     try {
         const userId = req.userId;
         const { id } = req.params;
+        const preferredCurrency = req.user?.preferredCurrency;
 
-        const parsedDTO = updateExpenseDTO(req.body);
+        const parsedDTO = updateExpenseDTO({
+            ...req.body,
+            preferredCurrency
+        });
 
         const mode = parsedDTO.mode ? validateOperationMode(parsedDTO.mode) : undefined;
-        const updateData = { ...parsedDTO };
-        delete updateData.mode;
 
-        const updatedExpense = await service.modifyExpense(userId, id, req.body);
+        const updatedExpense = await service.modifyExpense(userId, id, {
+            ...parsedDTO.updateData,
+            mode
+        });
 
         return res.status(HttpStatusCode.Ok).json(updatedExpense);
 
@@ -144,5 +151,72 @@ export async function handleGetExpensesByCategoryAndMonth(req, res) {
             message: "Erro interno ao buscar despesas por categoria no mês.",
             error: error.message
         });
+    }
+}
+
+export async function handleGetMonthlyExpensesConverted(req, res) {
+    try {
+        const userId = req.user?.id || req.user?._id;
+        const { year, month, targetCurrency } = req.query;
+
+        if (!year || !month || !targetCurrency) {
+            return res.status(HttpStatusCode.BadRequest).json({
+                error: 'Parâmetros obrigatórios ausentes: year, month e targetCurrency são necessários.'
+            });
+        }
+
+        const parsedYear = Number(year);
+        const parsedMonth = Number(month);
+
+        if (isNaN(parsedYear) || isNaN(parsedMonth) || parsedMonth < 1 || parsedMonth > 12) {
+            return res.status(HttpStatusCode.BadRequest).json({ error: 'Ano ou mês fornecidos são inválidos.' });
+        }
+
+        const expenses = await service.getMonthlyExpensesConverted(
+            userId,
+            parsedYear,
+            parsedMonth,
+            targetCurrency
+        );
+
+        return res.status(HttpStatusCode.Ok).json(expenses);
+
+    } catch (error) {
+        console.error('[Expense Controller] Erro em handleGetMonthlyExpensesConverted:', error.message);
+        return res.status(HttpStatusCode.InternalServerError).json({ error: 'Erro interno ao buscar despesas do mês.' });
+    }
+}
+
+export async function handleGetExpensesByCurrencyAndPeriod(req, res) {
+    try {
+        const userId = req.user?.id || req.user?._id;
+        const { baseCurrency, year, month, targetCurrency } = req.query;
+
+        if (!baseCurrency || !year || !month) {
+            return res.status(HttpStatusCode.BadRequest).json({
+                error: 'Parâmetros obrigatórios ausentes: baseCurrency, year e month são necessários.'
+            });
+        }
+
+        const parsedYear = Number(year);
+        const parsedMonth = Number(month);
+
+        if (isNaN(parsedYear) || isNaN(parsedMonth) || parsedMonth < 1 || parsedMonth > 12) {
+            return res.status(HttpStatusCode.BadRequest).json({ error: 'Ano ou mês fornecidos são inválidos.' });
+        }
+
+        const expenses = await service.getExpensesByCurrencyAndPeriod(
+            userId,
+            baseCurrency,
+            parsedYear,
+            parsedMonth,
+            targetCurrency || null
+        );
+
+        return res.status(HttpStatusCode.Ok).json(expenses);
+
+    } catch (error) {
+        console.error('[Expense Controller] Erro em handleGetExpensesByCurrencyAndPeriod:', error.message);
+        return res.status(HttpStatusCode.InternalServerError).json({ error: 'Erro interno ao buscar despesas por moeda e período.' });
     }
 }

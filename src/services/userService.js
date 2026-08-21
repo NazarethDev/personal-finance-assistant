@@ -20,7 +20,8 @@ export async function createUser(data) {
     const newUser = await repo.createUser({
         fullName: data.fullName,
         email: data.email,
-        password: hashedPassword
+        password: hashedPassword,
+        preferredCurrency: data.preferredCurrency
     });
 
     const userObject = newUser.toObject();

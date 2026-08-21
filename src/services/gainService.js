@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import * as repo from "../repositories/gainRepository.js";
 import * as categoryRepo from "../repositories/categoryRepository.js";
 
+import { calculateConvertedAmount } from "../services/currencyServices/exchangeRateService.js";
+
 import { normalizeDate, normalizeDateToCurrentDate } from "../utils/normalizeDate.js";
 import { normalizeMode } from "../utils/normalizeMode.js";
 import { calculateNextDate } from "../utils/calculateNextDate.js";

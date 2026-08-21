@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import * as repo from "../repositories/expenseRepository.js";
 import * as categoryRepo from "../repositories/categoryRepository.js";
 
+import { calculateConvertedAmount } from "../services/currencyServices/exchangeRateService.js";
+
 import { normalizeDate, normalizeDateToCurrentDate } from "../utils/normalizeDate.js";
 import { normalizeMode } from "../utils/normalizeMode.js"
 import { generateRecurrentSeries } from "../utils/generateRecurrentSeries.js";
@@ -57,6 +59,7 @@ export async function create(userId, data) {
         baseData: {
             user: userId,
             name: data.name,
+            currency: data.currency,
             amount: data.amount,
             category: categoryId,
         },
@@ -116,6 +119,50 @@ export async function getByCategoryAndMonth(userId, categoryId, year, month) {
     return await repo.findByCategoryAndMonth(userId, categoryDoc._id, finalYear, finalMonth);
 }
 
+export async function getMonthlyExpensesConverted(userId, year, month, targetCurrency) {
+    const expenses = await repo.findByMonth(userId, year, month);
+
+    if (!expenses || expenses.length === 0) {
+        return [];
+    }
+
+    const target = targetCurrency.toUpperCase();
+
+    return expenses.map(expense => {
+        const itemBaseCurrency = expense.currency || 'BRL';
+
+        return {
+            ...expense,
+            convertedAmount: calculateConvertedAmount(expense.amount, itemBaseCurrency, target),
+            targetCurrency: target
+        };
+    });
+}
+
+export async function getExpensesByCurrencyAndPeriod(userId, baseCurrency, year, month, targetCurrency = null) {
+    const expenses = await repo.findInCurrency(userId, baseCurrency, year, month);
+
+    if (!expenses || expenses.length === 0) {
+        return [];
+    }
+
+    if (!targetCurrency || targetCurrency.toUpperCase() === baseCurrency.toUpperCase()) {
+        return expenses.map(expense => ({
+            ...expense,
+            convertedAmount: expense.amount,
+            targetCurrency: baseCurrency.toUpperCase()
+        }));
+    }
+
+    const target = targetCurrency.toUpperCase();
+
+    return expenses.map(expense => ({
+        ...expense,
+        convertedAmount: calculateConvertedAmount(expense.amount, baseCurrency, target),
+        targetCurrency: target
+    }));
+}
+
 export async function removeExpense(userId, id, mode) {
     const target = await repo.findById(userId, id);
     const normalizedMode = normalizeMode(mode);
@@ -171,6 +218,7 @@ export async function modifyExpense(userId, id, payload) {
     const mergedData = {
         user: userId,
         name: updateData.name ?? target.name,
+        currency: updateData.currency ?? target.currency,
         amount: updateData.amount ?? target.amount,
         category: updateData.category ?? targetCategoryId,
         frequency: updateData.frequency ?? target.frequency,
